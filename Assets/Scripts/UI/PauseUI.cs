@@ -15,16 +15,14 @@ public class PauseUI : MonoBehaviour
     {
         resumeButton.onClick.AddListener(() =>
         {
-            Debug.Log("resume");
-            Time.timeScale = 1f;
+            ServiceLocator.Instance.GameManager.ResumeGame();
             Hide();
             
         });
         closeButton.onClick.AddListener(() =>
         {
             Hide();
-            Debug.Log("resume");
-            Time.timeScale = 1f;
+            ServiceLocator.Instance.GameManager.ResumeGame();
         });
         settingsButton.onClick.AddListener( () =>
         {
