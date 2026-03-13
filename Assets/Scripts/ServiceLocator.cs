@@ -5,6 +5,9 @@ public class ServiceLocator : MonoBehaviour
     public static ServiceLocator Instance { get; private set; }
     
     [field: SerializeField] public InputManager InputManager { get; private set; }
+    [field: SerializeField] public UIManager UIManager { get; private set; }
+    public GameManager GameManager { get; private set; }
+    public AudioManager AudioManager { get; private set; }
 
     private void Awake()
     {
@@ -14,5 +17,19 @@ public class ServiceLocator : MonoBehaviour
         }
 
         Instance = this;
+
+        AudioManager audioManager = FindFirstObjectByType<AudioManager>();
+
+        if (audioManager)
+        {
+            AudioManager = audioManager;
+        }
+
+        GameManager gameManager = FindFirstObjectByType<GameManager>();
+        
+        if (gameManager)
+        {
+            GameManager = gameManager;
+        }
     }
 }
