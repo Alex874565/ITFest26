@@ -47,8 +47,8 @@ public class AudioManager : MonoBehaviour
     public void PlayMusic(AudioClip clip)
     {
         Debug.Log("PLAY MUSIC CALLED");
-        Debug.Log(clip);
-        Debug.Log(currentMusic);
+        Debug.Log("music clip: " + clip);
+        Debug.Log("current music: " + currentMusic);
         if (clip == null || currentMusic == clip) return;
         currentMusic = clip;
 

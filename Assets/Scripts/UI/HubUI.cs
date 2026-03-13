@@ -2,12 +2,18 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-public class MainMenuUI : MonoBehaviour
+public class HubUI : MonoBehaviour
 {
     [SerializeField] private Button playButton;
     [SerializeField] private Button settingsButton;
-    [SerializeField] private Button shopButton;
+    [SerializeField] private Button mainMenuButton;
     [SerializeField] private MenuStaggerAnimation stagger;
+
+    [Header("Operations Buttons")]
+    [SerializeField] private Button additionButton;
+    [SerializeField] private Button subtractionButton;
+    [SerializeField] private Button multiplicationButton;
+    [SerializeField] private Button divisionButton;
 
     private void Awake()
     {
@@ -15,16 +21,19 @@ public class MainMenuUI : MonoBehaviour
         {
             stagger.CloseMenu(() =>
             {
-                SceneManager.LoadScene("HubScene");
+                SceneManager.LoadScene("GameScene");
             });
         });
         settingsButton.onClick.AddListener(() =>
         {
             ServiceLocator.Instance.UIManager.SettingsUI.Show();
         });
-        shopButton.onClick.AddListener(() =>
+        mainMenuButton.onClick.AddListener(() =>
         {
-            ServiceLocator.Instance.UIManager.ShopUI.Show();
+            stagger.CloseMenu(() =>
+            {     
+                SceneManager.LoadScene("MainMenuScene");
+            });
         });
     }
 
@@ -32,11 +41,6 @@ public class MainMenuUI : MonoBehaviour
     {
         stagger.OpenMenu();
 
-        ServiceLocator.Instance.AudioManager.PlayMenuMusic();
-    }
-
-    public void HideMenu()
-    {
-        stagger.CloseMenu();
+        //ServiceLocator.Instance.AudioManager.PlayMenuMusic();
     }
 }
