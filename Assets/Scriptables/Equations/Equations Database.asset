@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 966fa0a5d7d84527bb1d4953c96b932e, type: 3}
+  m_Name: Equations Database
+  m_EditorClassIdentifier: 
+  equationsDatabase:
+  - {fileID: 11400000, guid: 9132360f79fa1d449bd780d1d885aaba, type: 2}
+  - {fileID: 11400000, guid: ace6ce1eeb3ba3e408b97e709b22e992, type: 2}
+  - {fileID: 11400000, guid: 14cbb631e05e67743a81509bc3ca3917, type: 2}
+  - {fileID: 11400000, guid: 481a876dc027a3f438673cc14d152899, type: 2}

@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 07e0b24d683c4cb4acd6cfaf2402bba0, type: 3}
+  m_Name: Addition Data
+  m_EditorClassIdentifier: 
+  <Type>k__BackingField: 0
+  <AchievmentThresholds>k__BackingField: 0a00000064000000fa000000f4010000
+  <Equations>k__BackingField:
+  - Type: 0
+    <Equation>k__BackingField: 1 * 1
+    <Answer>k__BackingField: 1
+  - Type: 0
+    <Equation>k__BackingField: 3 * 11
+    <Answer>k__BackingField: 33
+  - Type: 0
+    <Equation>k__BackingField: 10 * 11
+    <Answer>k__BackingField: 110

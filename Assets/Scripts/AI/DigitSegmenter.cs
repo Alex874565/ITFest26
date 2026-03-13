@@ -5,7 +5,7 @@ public class DigitSegmenter : MonoBehaviour
 {
     [Header("Thresholding")]
     [SerializeField] private float whiteThreshold = 0.1f;
-    [SerializeField] private bool invertInput = false; // usually false for mask textures
+    [SerializeField] private bool invertInput = false;
 
     [Header("Blob Filtering")]
     [SerializeField] private int minBlobPixels = 20;
@@ -31,77 +31,90 @@ public class DigitSegmenter : MonoBehaviour
         public float[] mnistPixels;
     }
 
+    private bool[] _foreground;
+    private bool[] _visited;
+    private int[] _queue;
+
     public List<DigitCandidate> ExtractDigits(Texture2D source)
     {
-        int width = source.width;
-        int height = source.height;
+        return ExtractDigitsFromPixels(source.GetPixels32(), source.width, source.height);
+    }
 
-        Color[] pixels = source.GetPixels();
-        bool[] foreground = new bool[width * height];
-        bool[] visited = new bool[width * height];
+    public List<DigitCandidate> ExtractDigitsFromPixels(Color32[] pixels, int width, int height)
+    {
+        int pixelCount = width * height;
+        EnsureBuffers(pixelCount);
 
-        for (int i = 0; i < pixels.Length; i++)
+        for (int i = 0; i < pixelCount; i++)
         {
             float v = GetSourceValue(pixels[i]);
-            foreground[i] = v >= whiteThreshold;
+            _foreground[i] = v >= whiteThreshold;
+            _visited[i] = false;
         }
 
-        List<DigitCandidate> results = new List<DigitCandidate>();
-        Queue<Vector2Int> queue = new Queue<Vector2Int>();
-        List<Vector2Int> blobPixels = new List<Vector2Int>();
+        List<DigitCandidate> results = new List<DigitCandidate>(8);
 
         for (int y = 0; y < height; y++)
         {
+            int rowStart = y * width;
+
             for (int x = 0; x < width; x++)
             {
-                int startIndex = y * width + x;
-                if (visited[startIndex] || !foreground[startIndex])
+                int startIndex = rowStart + x;
+                if (_visited[startIndex] || !_foreground[startIndex])
                     continue;
 
-                blobPixels.Clear();
-                queue.Clear();
+                int head = 0;
+                int tail = 0;
 
-                visited[startIndex] = true;
-                queue.Enqueue(new Vector2Int(x, y));
+                _visited[startIndex] = true;
+                _queue[tail++] = startIndex;
 
-                int minX = x, maxX = x, minY = y, maxY = y;
+                int minX = x;
+                int maxX = x;
+                int minY = y;
+                int maxY = y;
+                int blobCount = 0;
 
-                while (queue.Count > 0)
+                while (head < tail)
                 {
-                    Vector2Int p = queue.Dequeue();
-                    blobPixels.Add(p);
+                    int idx = _queue[head++];
+                    blobCount++;
 
-                    if (p.x < minX) minX = p.x;
-                    if (p.x > maxX) maxX = p.x;
-                    if (p.y < minY) minY = p.y;
-                    if (p.y > maxY) maxY = p.y;
+                    int px = idx % width;
+                    int py = idx / width;
 
-                    TryVisit(p.x - 1, p.y);
-                    TryVisit(p.x + 1, p.y);
-                    TryVisit(p.x, p.y - 1);
-                    TryVisit(p.x, p.y + 1);
-                    TryVisit(p.x - 1, p.y - 1);
-                    TryVisit(p.x + 1, p.y - 1);
-                    TryVisit(p.x - 1, p.y + 1);
-                    TryVisit(p.x + 1, p.y + 1);
+                    if (px < minX) minX = px;
+                    if (px > maxX) maxX = px;
+                    if (py < minY) minY = py;
+                    if (py > maxY) maxY = py;
+
+                    TryVisit(px - 1, py);
+                    TryVisit(px + 1, py);
+                    TryVisit(px, py - 1);
+                    TryVisit(px, py + 1);
+                    TryVisit(px - 1, py - 1);
+                    TryVisit(px + 1, py - 1);
+                    TryVisit(px - 1, py + 1);
+                    TryVisit(px + 1, py + 1);
                 }
 
                 int blobWidth = maxX - minX + 1;
                 int blobHeight = maxY - minY + 1;
-                int boxArea = blobWidth * blobHeight;
+                int area = blobWidth * blobHeight;
 
-                if (blobPixels.Count < minBlobPixels)
+                if (blobCount < minBlobPixels)
                     continue;
 
                 if (blobWidth < minWidth || blobHeight < minHeight)
                     continue;
 
-                float fillRatio = blobPixels.Count / (float)boxArea;
+                float fillRatio = blobCount / (float)area;
                 if (fillRatio < minFillRatio)
                     continue;
 
                 RectInt bounds = new RectInt(minX, minY, blobWidth, blobHeight);
-                float[] mnist = BuildMnistTensor(source, bounds);
+                float[] mnist = BuildMnistTensor(pixels, width, height, bounds);
 
                 results.Add(new DigitCandidate
                 {
@@ -111,15 +124,15 @@ public class DigitSegmenter : MonoBehaviour
 
                 void TryVisit(int nx, int ny)
                 {
-                    if (nx < 0 || nx >= width || ny < 0 || ny >= height)
+                    if ((uint)nx >= (uint)width || (uint)ny >= (uint)height)
                         return;
 
-                    int idx = ny * width + nx;
-                    if (visited[idx] || !foreground[idx])
+                    int nIdx = ny * width + nx;
+                    if (_visited[nIdx] || !_foreground[nIdx])
                         return;
 
-                    visited[idx] = true;
-                    queue.Enqueue(new Vector2Int(nx, ny));
+                    _visited[nIdx] = true;
+                    _queue[tail++] = nIdx;
                 }
             }
         }
@@ -128,24 +141,24 @@ public class DigitSegmenter : MonoBehaviour
         return results;
     }
 
-    private float[] BuildMnistTensor(Texture2D source, RectInt bounds)
+    private void EnsureBuffers(int pixelCount)
+    {
+        if (_foreground == null || _foreground.Length != pixelCount)
+            _foreground = new bool[pixelCount];
+
+        if (_visited == null || _visited.Length != pixelCount)
+            _visited = new bool[pixelCount];
+
+        if (_queue == null || _queue.Length != pixelCount)
+            _queue = new int[pixelCount];
+    }
+
+    private float[] BuildMnistTensor(Color32[] pixels, int sourceWidth, int sourceHeight, RectInt bounds)
     {
         int cropX = Mathf.Max(0, bounds.x - padding);
         int cropY = Mathf.Max(0, bounds.y - padding);
-        int cropW = Mathf.Min(source.width - cropX, bounds.width + padding * 2);
-        int cropH = Mathf.Min(source.height - cropY, bounds.height + padding * 2);
-
-        Color[] crop = source.GetPixels(cropX, cropY, cropW, cropH);
-
-        float[,] src = new float[cropH, cropW];
-        for (int y = 0; y < cropH; y++)
-        {
-            for (int x = 0; x < cropW; x++)
-            {
-                Color c = crop[y * cropW + x];
-                src[y, x] = GetSourceValue(c);
-            }
-        }
+        int cropW = Mathf.Min(sourceWidth - cropX, bounds.width + padding * 2);
+        int cropH = Mathf.Min(sourceHeight - cropY, bounds.height + padding * 2);
 
         float scale = Mathf.Min(
             fittedDigitSize / (float)cropW,
@@ -155,7 +168,8 @@ public class DigitSegmenter : MonoBehaviour
         int scaledW = Mathf.Max(1, Mathf.RoundToInt(cropW * scale));
         int scaledH = Mathf.Max(1, Mathf.RoundToInt(cropH * scale));
 
-        float[,] scaled = new float[scaledH, scaledW];
+        float[] scaled = new float[scaledW * scaledH];
+        float[] canvas = new float[outputSize * outputSize];
 
         for (int y = 0; y < scaledH; y++)
         {
@@ -163,79 +177,94 @@ public class DigitSegmenter : MonoBehaviour
             {
                 float srcX = (x + 0.5f) / scale - 0.5f;
                 float srcY = (y + 0.5f) / scale - 0.5f;
-                scaled[y, x] = SampleBilinear(src, cropW, cropH, srcX, srcY);
+                scaled[y * scaledW + x] = SampleBilinear(
+                    pixels,
+                    sourceWidth,
+                    cropX,
+                    cropY,
+                    cropW,
+                    cropH,
+                    srcX,
+                    srcY
+                );
             }
         }
-
-        float[,] canvas = new float[outputSize, outputSize];
 
         int offsetX = (outputSize - scaledW) / 2;
         int offsetY = (outputSize - scaledH) / 2;
 
         for (int y = 0; y < scaledH; y++)
         {
+            int dstRow = (y + offsetY) * outputSize;
+            int srcRow = y * scaledW;
+
             for (int x = 0; x < scaledW; x++)
-            {
-                canvas[y + offsetY, x + offsetX] = scaled[y, x];
-            }
+                canvas[dstRow + x + offsetX] = scaled[srcRow + x];
         }
 
-        RecenterByMass(ref canvas);
+        RecenterByMass(canvas);
 
         if (applyDilation)
-            canvas = Dilate(canvas, outputSize);
+            canvas = Dilate(canvas);
 
         ApplyOrientation(ref canvas);
 
         float[] output = new float[outputSize * outputSize];
-        for (int y = 0; y < outputSize; y++)
-        {
-            for (int x = 0; x < outputSize; x++)
-            {
-                output[y * outputSize + x] = canvas[y, x] - 0.5f;
-            }
-        }
+        for (int i = 0; i < output.Length; i++)
+            output[i] = canvas[i] - 0.5f;
 
         return output;
     }
 
-    private float GetSourceValue(Color c)
+    private float GetSourceValue(Color32 c)
     {
-        float v = c.a; // use alpha from the mask texture
-
+        float v = c.a / 255f;
         if (invertInput)
             v = 1f - v;
-
-        return Mathf.Clamp01(v);
+        return v;
     }
 
-    private float SampleBilinear(float[,] src, int srcW, int srcH, float x, float y)
+    private float SampleBilinear(
+        Color32[] pixels,
+        int sourceWidth,
+        int cropX,
+        int cropY,
+        int cropW,
+        int cropH,
+        float x,
+        float y)
     {
-        int x0 = Mathf.Clamp(Mathf.FloorToInt(x), 0, srcW - 1);
-        int x1 = Mathf.Clamp(x0 + 1, 0, srcW - 1);
-        int y0 = Mathf.Clamp(Mathf.FloorToInt(y), 0, srcH - 1);
-        int y1 = Mathf.Clamp(y0 + 1, 0, srcH - 1);
+        int x0 = Mathf.Clamp(Mathf.FloorToInt(x), 0, cropW - 1);
+        int x1 = Mathf.Clamp(x0 + 1, 0, cropW - 1);
+        int y0 = Mathf.Clamp(Mathf.FloorToInt(y), 0, cropH - 1);
+        int y1 = Mathf.Clamp(y0 + 1, 0, cropH - 1);
 
         float tx = x - x0;
         float ty = y - y0;
 
-        float a = Mathf.Lerp(src[y0, x0], src[y0, x1], tx);
-        float b = Mathf.Lerp(src[y1, x0], src[y1, x1], tx);
+        float p00 = GetSourceValue(pixels[(cropY + y0) * sourceWidth + (cropX + x0)]);
+        float p10 = GetSourceValue(pixels[(cropY + y0) * sourceWidth + (cropX + x1)]);
+        float p01 = GetSourceValue(pixels[(cropY + y1) * sourceWidth + (cropX + x0)]);
+        float p11 = GetSourceValue(pixels[(cropY + y1) * sourceWidth + (cropX + x1)]);
 
+        float a = Mathf.Lerp(p00, p10, tx);
+        float b = Mathf.Lerp(p01, p11, tx);
         return Mathf.Lerp(a, b, ty);
     }
 
-    private void RecenterByMass(ref float[,] canvas)
+    private void RecenterByMass(float[] canvas)
     {
         float sum = 0f;
         float cx = 0f;
         float cy = 0f;
+        int size = outputSize;
 
-        for (int y = 0; y < outputSize; y++)
+        for (int y = 0; y < size; y++)
         {
-            for (int x = 0; x < outputSize; x++)
+            int row = y * size;
+            for (int x = 0; x < size; x++)
             {
-                float v = canvas[y, x];
+                float v = canvas[row + x];
                 sum += v;
                 cx += x * v;
                 cy += y * v;
@@ -248,31 +277,31 @@ public class DigitSegmenter : MonoBehaviour
         cx /= sum;
         cy /= sum;
 
-        int targetX = outputSize / 2;
-        int targetY = outputSize / 2;
-        int shiftX = Mathf.RoundToInt(targetX - cx);
-        int shiftY = Mathf.RoundToInt(targetY - cy);
+        int shiftX = Mathf.RoundToInt(size / 2f - cx);
+        int shiftY = Mathf.RoundToInt(size / 2f - cy);
 
-        float[,] shifted = new float[outputSize, outputSize];
+        float[] shifted = new float[size * size];
 
-        for (int y = 0; y < outputSize; y++)
+        for (int y = 0; y < size; y++)
         {
-            for (int x = 0; x < outputSize; x++)
+            for (int x = 0; x < size; x++)
             {
                 int sx = x - shiftX;
                 int sy = y - shiftY;
 
-                if (sx >= 0 && sx < outputSize && sy >= 0 && sy < outputSize)
-                    shifted[y, x] = canvas[sy, sx];
+                if ((uint)sx < (uint)size && (uint)sy < (uint)size)
+                    shifted[y * size + x] = canvas[sy * size + sx];
             }
         }
 
-        canvas = shifted;
+        for (int i = 0; i < canvas.Length; i++)
+            canvas[i] = shifted[i];
     }
 
-    private float[,] Dilate(float[,] src, int size)
+    private float[] Dilate(float[] src)
     {
-        float[,] dst = new float[size, size];
+        int size = outputSize;
+        float[] dst = new float[size * size];
 
         for (int y = 0; y < size; y++)
         {
@@ -282,24 +311,28 @@ public class DigitSegmenter : MonoBehaviour
 
                 for (int oy = -1; oy <= 1; oy++)
                 {
+                    int ny = y + oy;
+                    if ((uint)ny >= (uint)size) continue;
+
                     for (int ox = -1; ox <= 1; ox++)
                     {
                         int nx = x + ox;
-                        int ny = y + oy;
+                        if ((uint)nx >= (uint)size) continue;
 
-                        if (nx >= 0 && nx < size && ny >= 0 && ny < size)
-                            maxVal = Mathf.Max(maxVal, src[ny, nx]);
+                        float v = src[ny * size + nx];
+                        if (v > maxVal)
+                            maxVal = v;
                     }
                 }
 
-                dst[y, x] = maxVal;
+                dst[y * size + x] = maxVal;
             }
         }
 
         return dst;
     }
 
-    private void ApplyOrientation(ref float[,] canvas)
+    private void ApplyOrientation(ref float[] canvas)
     {
         if (rotate90Clockwise)
             canvas = Rotate90CW(canvas);
@@ -314,54 +347,49 @@ public class DigitSegmenter : MonoBehaviour
             canvas = FlipVertical(canvas);
     }
 
-    private float[,] Rotate90CW(float[,] src)
+    private float[] Rotate90CW(float[] src)
     {
-        float[,] dst = new float[outputSize, outputSize];
-        for (int y = 0; y < outputSize; y++)
+        int size = outputSize;
+        float[] dst = new float[size * size];
+        for (int y = 0; y < size; y++)
+            for (int x = 0; x < size; x++)
+                dst[y * size + x] = src[(size - 1 - x) * size + y];
+        return dst;
+    }
+
+    private float[] Rotate90CCW(float[] src)
+    {
+        int size = outputSize;
+        float[] dst = new float[size * size];
+        for (int y = 0; y < size; y++)
+            for (int x = 0; x < size; x++)
+                dst[y * size + x] = src[x * size + (size - 1 - y)];
+        return dst;
+    }
+
+    private float[] FlipHorizontal(float[] src)
+    {
+        int size = outputSize;
+        float[] dst = new float[size * size];
+        for (int y = 0; y < size; y++)
         {
-            for (int x = 0; x < outputSize; x++)
-            {
-                dst[y, x] = src[outputSize - 1 - x, y];
-            }
+            int row = y * size;
+            for (int x = 0; x < size; x++)
+                dst[row + x] = src[row + (size - 1 - x)];
         }
         return dst;
     }
 
-    private float[,] Rotate90CCW(float[,] src)
+    private float[] FlipVertical(float[] src)
     {
-        float[,] dst = new float[outputSize, outputSize];
-        for (int y = 0; y < outputSize; y++)
+        int size = outputSize;
+        float[] dst = new float[size * size];
+        for (int y = 0; y < size; y++)
         {
-            for (int x = 0; x < outputSize; x++)
-            {
-                dst[y, x] = src[x, outputSize - 1 - y];
-            }
-        }
-        return dst;
-    }
-
-    private float[,] FlipHorizontal(float[,] src)
-    {
-        float[,] dst = new float[outputSize, outputSize];
-        for (int y = 0; y < outputSize; y++)
-        {
-            for (int x = 0; x < outputSize; x++)
-            {
-                dst[y, x] = src[y, outputSize - 1 - x];
-            }
-        }
-        return dst;
-    }
-
-    private float[,] FlipVertical(float[,] src)
-    {
-        float[,] dst = new float[outputSize, outputSize];
-        for (int y = 0; y < outputSize; y++)
-        {
-            for (int x = 0; x < outputSize; x++)
-            {
-                dst[y, x] = src[outputSize - 1 - y, x];
-            }
+            int srcRow = (size - 1 - y) * size;
+            int dstRow = y * size;
+            for (int x = 0; x < size; x++)
+                dst[dstRow + x] = src[srcRow + x];
         }
         return dst;
     }
@@ -369,20 +397,16 @@ public class DigitSegmenter : MonoBehaviour
     public Texture2D CreateDebugTexture(float[] mnistPixels)
     {
         Texture2D tex = new Texture2D(outputSize, outputSize, TextureFormat.RGBA32, false);
+        Color32[] colors = new Color32[outputSize * outputSize];
 
-        Color[] colors = new Color[outputSize * outputSize];
-
-        for (int y = 0; y < outputSize; y++)
+        for (int i = 0; i < colors.Length; i++)
         {
-            for (int x = 0; x < outputSize; x++)
-            {
-                int idx = y * outputSize + x;
-                float v = mnistPixels[idx] + 0.5f;
-                colors[idx] = new Color(v, v, v, 1f);
-            }
+            float v = Mathf.Clamp01(mnistPixels[i] + 0.5f);
+            byte b = (byte)Mathf.RoundToInt(v * 255f);
+            colors[i] = new Color32(b, b, b, 255);
         }
 
-        tex.SetPixels(colors);
+        tex.SetPixels32(colors);
         tex.Apply();
         return tex;
     }
