@@ -24,7 +24,7 @@ public class MainMenuUI : MonoBehaviour
         });
         shopButton.onClick.AddListener(() =>
         {
-            ServiceLocator.Instance.UIManager.ShopUI.Show();
+            //ServiceLocator.Instance.UIManager.ShopUI.Show();
         });
     }
 

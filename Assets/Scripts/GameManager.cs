@@ -58,12 +58,14 @@ public class GameManager : MonoBehaviour
 
     public void PauseGame()
     {
+        Debug.Log("paused");
         IsPaused = true;
         Time.timeScale = 0f;
     }
 
     public void ResumeGame()
     {
+        Debug.Log("resumed");
         IsPaused = false;
         Time.timeScale = 1f;
     }
