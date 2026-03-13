@@ -652,7 +652,7 @@ PrefabInstance:
     - target: {fileID: 1769193843765526582, guid: 9b0bc622e7847b34bb559ec95a34e08e, type: 3}
       propertyPath: <UIManager>k__BackingField
       value: 
-      objectReference: {fileID: 885486733}
+      objectReference: {fileID: 0}
     - target: {fileID: 7768018499708512635, guid: 9b0bc622e7847b34bb559ec95a34e08e, type: 3}
       propertyPath: m_Name
       value: ServiceLocator
@@ -723,17 +723,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 21de1e495c7614c47af95d6d9131a092, type: 3}
---- !u!114 &885486733 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 7270526492696965898, guid: 21de1e495c7614c47af95d6d9131a092, type: 3}
-  m_PrefabInstance: {fileID: 885486732}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 95639ccaa2247e146851f57986ebaf35, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &1009961740
 GameObject:
   m_ObjectHideFlags: 0
@@ -1028,11 +1017,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1442730249312007737, guid: 457a6d9c4eb376b45b470edc28b461c7, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 160
+      value: 202
       objectReference: {fileID: 0}
     - target: {fileID: 1442730249312007737, guid: 457a6d9c4eb376b45b470edc28b461c7, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 30
+      value: 101
       objectReference: {fileID: 0}
     - target: {fileID: 1442730249312007737, guid: 457a6d9c4eb376b45b470edc28b461c7, type: 3}
       propertyPath: m_LocalPosition.x
@@ -1082,12 +1071,33 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1625545857919190711, guid: 457a6d9c4eb376b45b470edc28b461c7, type: 3}
+      propertyPath: m_Transition
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 1625545857919190711, guid: 457a6d9c4eb376b45b470edc28b461c7, type: 3}
+      propertyPath: m_SpriteState.m_DisabledSprite
+      value: 
+      objectReference: {fileID: 1207229619798930073, guid: 808d27bca87888a48bb7d7586d1a9ce4, type: 3}
+    - target: {fileID: 1625545857919190711, guid: 457a6d9c4eb376b45b470edc28b461c7, type: 3}
+      propertyPath: m_SpriteState.m_SelectedSprite
+      value: 
+      objectReference: {fileID: -1420635468, guid: 808d27bca87888a48bb7d7586d1a9ce4, type: 3}
+    - target: {fileID: 4273815864987537292, guid: 457a6d9c4eb376b45b470edc28b461c7, type: 3}
+      propertyPath: m_Type
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4273815864987537292, guid: 457a6d9c4eb376b45b470edc28b461c7, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: -1420635468, guid: 808d27bca87888a48bb7d7586d1a9ce4, type: 3}
     - target: {fileID: 8732437542127906734, guid: 457a6d9c4eb376b45b470edc28b461c7, type: 3}
       propertyPath: m_Name
       value: ButtonBase
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 2724491463291540247, guid: 457a6d9c4eb376b45b470edc28b461c7, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 457a6d9c4eb376b45b470edc28b461c7, type: 3}
