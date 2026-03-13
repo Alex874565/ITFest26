@@ -30,13 +30,20 @@ public class SaveManager : MonoBehaviour
         {
             List<EquationType> selectedEquations = new List<EquationType>();
 
-            for (int i = 0; i < SaveData.SelectedEquations.Count; i++)
-            {
-                if (SaveData.SelectedEquations[i])
-                    selectedEquations.Add((EquationType)i);
-            }
+            //for (int i = 0; i < SaveData.SelectedEquations.Count; i++)
+            //{
+             //   if (SaveData.SelectedEquations[i])
+             //       selectedEquations.Add((EquationType)i);
+            //}
 
-            return selectedEquations;
+            //return selectedEquations;
+            return new List<EquationType>()
+            {
+                EquationType.Addition,
+                EquationType.Subtraction,
+                EquationType.Multiplication,
+                EquationType.Division,
+            };
         }
     }
     

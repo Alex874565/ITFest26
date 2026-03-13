@@ -1,8 +1,11 @@
 ﻿using UnityEngine;
+using System;
 
 [RequireComponent(typeof(Rigidbody2D))]
 public class EnemyMovementController : MonoBehaviour
 {
+    public event Action<bool> OnFlip;
+    
     private EnemyStats _stats;
     private Rigidbody2D _rb;
 
@@ -38,14 +41,12 @@ public class EnemyMovementController : MonoBehaviour
     
     private void FlipToPlayer()
     {
-        if (_playerPos.x < transform.position.x)
-            transform.localScale = new Vector3(-1, 1, 1);
-        else
-            transform.localScale = new Vector3(1, 1, 1);
+        OnFlip?.Invoke(transform.position.x < _playerPos.x);
     }
 
     public void ResetValues()
     {
+        _reachedPlayer = false;
         _rb.linearVelocity = Vector2.zero;
     }
 

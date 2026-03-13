@@ -22,6 +22,7 @@ public class EnemyController : MonoBehaviour, IReachPlayer, IDisappear
     {
         _visualController = GetComponent<EnemyVisualController>();
         _movementController = GetComponent<EnemyMovementController>();
+        _movementController.OnFlip += _visualController.Flip;
     }
     
     public void Instantiate(EquationType equationType, EnemyStats stats, PlayerController playerController)
