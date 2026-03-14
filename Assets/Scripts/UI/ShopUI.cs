@@ -7,14 +7,14 @@ using UnityEngine.PlayerLoop;
 public class ShopUI : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI moneyText;
-    [SerializeField] private Button mainMenuButton;
+    [SerializeField] private Button hubButton;
     [SerializeField] private Button settingsButton;
     [SerializeField] private MenuStaggerAnimation stagger;
     [SerializeField] private CosmeticItemUI[] cosmetics;
     
     private void Awake()
     {
-        mainMenuButton.onClick.AddListener( () =>
+        hubButton.onClick.AddListener( () =>
         {
            Hide(); 
         });
@@ -30,6 +30,9 @@ public class ShopUI : MonoBehaviour
 
     public void Show()
     {
+        Debug.Log(moneyText);
+        Debug.Log(ServiceLocator.Instance);
+        Debug.Log(ServiceLocator.Instance.PlayerManager);
         moneyText.text = ServiceLocator.Instance.PlayerManager.Money.ToString();
 
         cosmetics[0].Initialize(100, false, false);
