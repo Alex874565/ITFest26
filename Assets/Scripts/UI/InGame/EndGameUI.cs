@@ -1,29 +1,32 @@
 ﻿using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public class EndGameUI : MonoBehaviour
 {
     [SerializeField] private EquationsCategoriesDatabase equationsDatabase;
+    [SerializeField] private PlayerManager playerManager;
+    [Header("UI References")]
     [SerializeField] private Transform barsParent;
     [SerializeField] private EquationProgressBarUI barPrefab;
-    [SerializeField] private PlayerManager playerManager;
-
+    [SerializeField] private TextMeshProUGUI moneyText;
+    
     private readonly List<EquationProgressBarUI> spawnedBars = new();
 
     private void Awake()
     {
         gameObject.SetActive(false);
-        playerManager.OnEndGameScoresCalculated += Show;
+        playerManager.OnEndGameValuesCalculated += Show;
     }
 
     private void OnDestroy()
     {
-        playerManager.OnEndGameScoresCalculated -= Show;
+        playerManager.OnEndGameValuesCalculated -= Show;
     }
     
     public void Show(
         Dictionary<EquationType, int> previousScores,
-        Dictionary<EquationType, int> newScores)
+        Dictionary<EquationType, int> newScores, int moneyGained)
     {
         gameObject.SetActive(true);
         ClearBars();
@@ -43,6 +46,8 @@ public class EndGameUI : MonoBehaviour
             bar.Setup(type, previousScore, newScore, thresholdLevels);
             spawnedBars.Add(bar);
         }
+        
+        moneyText.text = $"{moneyGained}";
     }
 
     private void ClearBars()

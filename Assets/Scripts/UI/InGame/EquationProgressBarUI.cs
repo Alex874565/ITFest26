@@ -2,7 +2,6 @@
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
-using UnityEngine.PlayerLoop;
 using UnityEngine.UI;
 
 public class EquationProgressBarUI : MonoBehaviour
@@ -14,14 +13,15 @@ public class EquationProgressBarUI : MonoBehaviour
 
     [Header("Animation")]
     [SerializeField] private float secondsPerPoint = 0.05f;
-    [SerializeField] private float minSegmentDuration = 0.4f;
-    [SerializeField] private float maxAnimationDuration = 1.5f;
+    [SerializeField] private float minSegmentDuration = 0.15f;
+    [SerializeField] private float maxSegmentDuration = 0.6f;
     [SerializeField] private float popDuration = 0.25f;
     [SerializeField] private float popScaleMultiplier = 1.2f;
     [SerializeField] private Ease fillEase = Ease.InOutQuad;
     [SerializeField] private Ease popEase = Ease.OutBack;
 
     private Sequence _sequence;
+    private Tween _popTween;
     private Vector3 _levelTextOriginalScale;
 
     private void Awake()
@@ -31,16 +31,24 @@ public class EquationProgressBarUI : MonoBehaviour
 
     private void OnDisable()
     {
+        KillTweens();
+    }
+
+    private void KillTweens()
+    {
         _sequence?.Kill();
+        _sequence = null;
+
+        _popTween?.Kill();
+        _popTween = null;
+
         levelText.rectTransform.DOKill();
         fillImage.DOKill();
     }
 
     public void Setup(EquationType equationType, int previousScore, int newScore, List<int> thresholds)
     {
-        _sequence?.Kill();
-        levelText.rectTransform.DOKill();
-        fillImage.DOKill();
+        KillTweens();
 
         titleText.text = equationType.ToString();
 
@@ -52,6 +60,7 @@ public class EquationProgressBarUI : MonoBehaviour
             return;
         }
 
+        // Always start from the previous score visually.
         UpdateVisualsFromTotalScore(previousScore, thresholds);
 
         if (newScore <= previousScore)
@@ -60,47 +69,62 @@ public class EquationProgressBarUI : MonoBehaviour
             return;
         }
 
-        float tweenProgress = 0f;
-        float displayedScore = previousScore;
-        int lastLevel = GetLevel(previousScore, thresholds);
-
-        float duration = Mathf.Clamp(
-            (newScore - previousScore) * secondsPerPoint,
-            minSegmentDuration,
-            maxAnimationDuration
-        );
-
         _sequence = DOTween.Sequence().SetUpdate(true);
 
-        _sequence.Append(
-            DOTween.To(
-                    () => tweenProgress,
-                    x =>
-                    {
-                        tweenProgress = x;
-                        displayedScore = Mathf.Lerp(previousScore, newScore, tweenProgress);
+        int currentScore = previousScore;
+        int currentLevel = GetLevel(currentScore, thresholds);
 
-                        int currentDisplayedScore = Mathf.FloorToInt(displayedScore);
-                        int currentLevel = GetLevel(currentDisplayedScore, thresholds);
+        // Animate through each threshold one by one.
+        while (currentLevel < thresholds.Count && newScore >= thresholds[currentLevel])
+        {
+            int targetScore = thresholds[currentLevel];
+            AppendScoreSegment(currentScore, targetScore, thresholds);
 
-                        while (lastLevel < currentLevel)
-                        {
-                            lastLevel++;
-                            PlayLevelPop();
-                        }
+            int reachedLevel = currentLevel + 1;
+            _sequence.AppendCallback(() =>
+            {
+                UpdateVisualsFromTotalScore(targetScore, thresholds);
+                PlayLevelPop();
+            });
 
-                        UpdateVisualsFromTotalScore(displayedScore, thresholds);
-                    },
-                    1f,
-                    duration)
-                .SetEase(fillEase)
-                .SetUpdate(true)
-        );
+            currentScore = targetScore;
+            currentLevel = reachedLevel;
+        }
+
+        // Animate the remainder after the last crossed threshold.
+        if (currentScore < newScore)
+        {
+            AppendScoreSegment(currentScore, newScore, thresholds);
+        }
 
         _sequence.AppendCallback(() =>
         {
             UpdateVisualsFromTotalScore(newScore, thresholds);
         });
+    }
+
+    private void AppendScoreSegment(int fromScore, int toScore, List<int> thresholds)
+    {
+        float displayedScore = fromScore;
+        float duration = Mathf.Clamp(
+            (toScore - fromScore) * secondsPerPoint,
+            minSegmentDuration,
+            maxSegmentDuration
+        );
+
+        _sequence.Append(
+            DOTween.To(
+                    () => displayedScore,
+                    value =>
+                    {
+                        displayedScore = value;
+                        UpdateVisualsFromTotalScore(displayedScore, thresholds);
+                    },
+                    toScore,
+                    duration)
+                .SetEase(fillEase)
+                .SetUpdate(true)
+        );
     }
 
     private void UpdateVisualsFromTotalScore(int totalScore, List<int> thresholds)
@@ -127,7 +151,6 @@ public class EquationProgressBarUI : MonoBehaviour
 
         float progressInLevel = totalScore - previousThreshold;
         float requiredInLevel = nextThreshold - previousThreshold;
-
         float fill = requiredInLevel > 0f ? progressInLevel / requiredInLevel : 0f;
 
         levelText.text = $"{level}";
@@ -154,19 +177,20 @@ public class EquationProgressBarUI : MonoBehaviour
     {
         RectTransform rect = levelText.rectTransform;
 
-        rect.DOKill();
+        _popTween?.Kill();
         rect.localScale = _levelTextOriginalScale;
 
-        Sequence popSequence = DOTween.Sequence().SetUpdate(true);
-        popSequence.Append(
-            rect.DOScale(_levelTextOriginalScale * popScaleMultiplier, popDuration * 0.5f)
-                .SetEase(popEase)
-                .SetUpdate(true)
-        );
-        popSequence.Append(
-            rect.DOScale(_levelTextOriginalScale, popDuration * 0.5f)
-                .SetEase(Ease.InOutSine)
-                .SetUpdate(true)
-        );
+        _popTween = DOTween.Sequence()
+            .SetUpdate(true)
+            .Append(
+                rect.DOScale(_levelTextOriginalScale * popScaleMultiplier, popDuration * 0.5f)
+                    .SetEase(popEase)
+                    .SetUpdate(true)
+            )
+            .Append(
+                rect.DOScale(_levelTextOriginalScale, popDuration * 0.5f)
+                    .SetEase(Ease.InOutSine)
+                    .SetUpdate(true)
+            );
     }
 }

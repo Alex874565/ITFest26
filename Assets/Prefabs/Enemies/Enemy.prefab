@@ -33,8 +33,8 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1679759118954047129}
   - {fileID: 810862736754561670}
+  - {fileID: 1679759118954047129}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1143899131124219535
@@ -64,8 +64,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0b715089cd2e4e9a9116839d42eef9c5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  leapForce: 0.1
-  upwardBoost: 0.5
 --- !u!50 &4786595897167153321
 Rigidbody2D:
   serializedVersion: 5
@@ -269,8 +267,8 @@ Transform:
   m_GameObject: {fileID: 6929278788322673883}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 2, y: 2, z: 1}
+  m_LocalPosition: {x: 0, y: 0, z: -1}
+  m_LocalScale: {x: 3, y: 3, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 7785505655921457489}

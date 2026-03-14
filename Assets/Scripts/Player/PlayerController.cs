@@ -10,7 +10,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private EquationsCategoriesDatabase equationsCategoriesDatabase;
 
     public event Action<int> OnScoreChanged;
-    public event Action<Dictionary<EquationType, int>> OnDeathWithData;
+    public event Action<Dictionary<EquationType, int>, int> OnDeathWithData;
     public event Action OnDeath;
 
     private Dictionary<EquationType, DifficultyLevelGameData> _difficultyLevelsGameData = new Dictionary<EquationType, DifficultyLevelGameData>();
@@ -56,23 +56,29 @@ public class PlayerController : MonoBehaviour
     public void AddScore(EquationType equationType)
     {
         _equationScores[equationType]++;
-        Money++;
+        Money += SaveManager.Instance.EquationLevels[equationType] + 1;
         OnScoreChanged?.Invoke(Money);
     }
 
     public void AttackEnemies(int number)
     {
+        float elapsed = _timeSinceEnemyDefeated;
+        bool defeatedAny = false;
+
         for (int i = enemySpawner.ActiveEnemies.Count - 1; i >= 0; i--)
         {
             EnemyController enemy = enemySpawner.ActiveEnemies[i];
 
             if (enemy.CanDisappear(number))
             {
-                ChangeDifficultyData(enemy.EquationType);
-                _timeSinceEnemyDefeated = 0f;
+                ChangeDifficultyData(enemy.EquationType, elapsed);
                 enemy.Disappear();
+                defeatedAny = true;
             }
         }
+
+        if (defeatedAny)
+            _timeSinceEnemyDefeated = 0f;
     }
     public bool TryGetBestAssistDistance(int number, out float closestDistance)
     {
@@ -101,26 +107,29 @@ public class PlayerController : MonoBehaviour
         return foundMatch;
     }
     
-    private void ChangeDifficultyData(EquationType equationType)
+    private void ChangeDifficultyData(EquationType equationType, float answerTime)
     {
         if (!_difficultyLevelsGameData.ContainsKey(equationType))
             return;
 
         DifficultyLevelGameData gameData = _difficultyLevelsGameData[equationType];
         gameData.CorrectAnswers++;
-        gameData.AnswerTimeAverage = (gameData.AnswerTimeAverage + _timeSinceEnemyDefeated)/gameData.CorrectAnswers;
 
-        DifficultyLevelStats difficultyLevelStats = equationsCategoriesDatabase.GetEquationCategoryData(equationType).DifficultyLevels[gameData.Level];
-        if(gameData.CorrectAnswers >= difficultyLevelStats.MinAnswers && gameData.AnswerTimeAverage <= difficultyLevelStats.PassThreshold)
+        gameData.AnswerTimeAverage =
+            ((gameData.AnswerTimeAverage * (gameData.CorrectAnswers - 1)) + answerTime)
+            / gameData.CorrectAnswers;
+
+        DifficultyLevelStats difficultyLevelStats =
+            equationsCategoriesDatabase.GetEquationCategoryData(equationType).DifficultyLevels[gameData.Level];
+
+        if (gameData.CorrectAnswers >= difficultyLevelStats.MinAnswers &&
+            gameData.AnswerTimeAverage <= difficultyLevelStats.PassThreshold)
         {
-            Debug.Log(gameData.Level + 1);
-            Debug.Log(equationsCategoriesDatabase.GetEquationCategoryData(equationType).DifficultyLevels[gameData.Level + 1].MaxNumber);
-
             gameData.Level++;
             gameData.CorrectAnswers = 0;
             gameData.AnswerTimeAverage = 0;
         }
-        
+
         _difficultyLevelsGameData[equationType] = gameData;
     }
 
@@ -132,7 +141,7 @@ public class PlayerController : MonoBehaviour
 
     public void Die()
     {
-        OnDeathWithData?.Invoke(_equationScores);
+        OnDeathWithData?.Invoke(_equationScores, Money);
         OnDeath?.Invoke();
     }
 }

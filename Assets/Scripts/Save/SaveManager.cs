@@ -39,10 +39,10 @@ public class SaveManager : MonoBehaviour
             //return selectedEquations;
             return new List<EquationType>()
             {
-                EquationType.Addition,
+                //EquationType.Addition,
                 //EquationType.Subtraction,
                 //EquationType.Multiplication,
-                //EquationType.Division,
+                EquationType.Division,
             };
         }
     }

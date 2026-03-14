@@ -7,12 +7,14 @@ public class PlayerManager : MonoBehaviour
     [SerializeField] private EquationsCategoriesDatabase equationsDatabase;
     [SerializeField] private PlayerController playerController;
 
-    public event Action<Dictionary<EquationType, int>, Dictionary<EquationType, int>> OnEndGameScoresCalculated;
+    public event Action<Dictionary<EquationType, int>, Dictionary<EquationType, int>, int> OnEndGameValuesCalculated;
     
     public int Money { get; private set; }
     public Dictionary<EquationType, int> EquationLevels { get; private set; }
     public Dictionary<EquationType, int> EquationHighScores { get; private set; }
     public List<EquationType> SelectedEquations { get; private set; }
+    
+    public List<List<int>> Unlocks { get; private set; }
 
     private void Start()
     {
@@ -79,7 +81,7 @@ public class PlayerManager : MonoBehaviour
         Save();
     }
     
-    public void HandlePlayerDeath(Dictionary<EquationType, int> equationScores)
+    public void HandlePlayerDeath(Dictionary<EquationType, int> equationScores, int moneyGained)
     {
         Dictionary<EquationType, int> previousScores = new Dictionary<EquationType, int>(EquationHighScores);
         
@@ -100,19 +102,19 @@ public class PlayerManager : MonoBehaviour
         
         EquationHighScores = new Dictionary<EquationType, int>(EquationHighScores);
 
-        Save();
+        SetMoney(Money + moneyGained);
 
         foreach (var score in EquationHighScores)
         {
             Debug.Log($"Equation: {score.Key}, Previous High Score: {previousScores[score.Key]}, New High Score: {score.Value}");
         }
         // Send previousScores and newScores to the end game UI here
-        OnEndGameScoresCalculated?.Invoke(previousScores, EquationHighScores);
+        OnEndGameValuesCalculated?.Invoke(previousScores, EquationHighScores, moneyGained);
     }
 
     private void Save()
     {
-        SaveData saveData = new SaveData(Money, EquationLevels, EquationHighScores, SelectedEquations);
+        SaveData saveData = new SaveData(Money, EquationLevels, EquationHighScores, SelectedEquations, Unlocks);
         SaveManager.Instance.Save(saveData);
     }
 }

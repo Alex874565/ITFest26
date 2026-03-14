@@ -8,13 +8,15 @@ public class SaveData
     public List<int> EquationLevels;
     public List<int> EquationHighScores;
     public List<bool> SelectedEquations;
+    public List<List<int>> Unlocks;
     
-    public SaveData(int money, Dictionary<EquationType, int> equationLevels, Dictionary<EquationType, int> equationHighScores, List<EquationType> selectedEquations)
+    public SaveData(int money, Dictionary<EquationType, int> equationLevels, Dictionary<EquationType, int> equationHighScores, List<EquationType> selectedEquations, List<List<int>> unlocks)
     {
         Money = money;
         EquationLevels = new List<int>(equationLevels.Values);
         EquationHighScores = new List<int>(equationHighScores.Values);
         SelectedEquations = new List<bool>();
+        Unlocks = unlocks;
         foreach (EquationType type in System.Enum.GetValues(typeof(EquationType)))
         {
             if(selectedEquations.Contains(type))

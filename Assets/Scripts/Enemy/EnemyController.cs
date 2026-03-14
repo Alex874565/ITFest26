@@ -128,7 +128,7 @@ public class EnemyController : MonoBehaviour, IReachPlayer, IDisappear
 
             case EquationType.Division:
                 y = UnityEngine.Random.Range(1, max + 1);   // divisor
-                answer = UnityEngine.Random.Range(1, max + 1); // quotient
+                answer = UnityEngine.Random.Range(1, max/y); // quotient
                 x = y * answer; // guarantees whole division
                 equation = $"{x} / {y}";
                 break;

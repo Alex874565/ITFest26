@@ -15,21 +15,21 @@ MonoBehaviour:
   <Type>k__BackingField: 3
   <AchievmentThresholds>k__BackingField: 0a0000001e000000320000004b00000064000000
   <DifficultyLevels>k__BackingField:
-  - <PassThreshold>k__BackingField: 2
+  - <PassThreshold>k__BackingField: 4
     <MinAnswers>k__BackingField: 5
     <MaxNumber>k__BackingField: 4
-  - <PassThreshold>k__BackingField: 10
+  - <PassThreshold>k__BackingField: 4
     <MinAnswers>k__BackingField: 5
     <MaxNumber>k__BackingField: 9
-  - <PassThreshold>k__BackingField: 2
+  - <PassThreshold>k__BackingField: 4
     <MinAnswers>k__BackingField: 5
     <MaxNumber>k__BackingField: 49
-  - <PassThreshold>k__BackingField: 2
+  - <PassThreshold>k__BackingField: 4
     <MinAnswers>k__BackingField: 5
     <MaxNumber>k__BackingField: 99
-  - <PassThreshold>k__BackingField: 2
+  - <PassThreshold>k__BackingField: 4
     <MinAnswers>k__BackingField: 5
     <MaxNumber>k__BackingField: 499
-  - <PassThreshold>k__BackingField: 2
+  - <PassThreshold>k__BackingField: 4
     <MinAnswers>k__BackingField: 100
     <MaxNumber>k__BackingField: 999

@@ -33,6 +33,8 @@ public class NumberRecognitionController : MonoBehaviour
     [Header("Whole Number Assist")]
     [SerializeField] private bool enableAssist = true;
     [SerializeField, Range(1, 4)] private int assistTopKPerDigit = 2;
+    [SerializeField] private float assistMaxRelevantDistance = 8f;
+    [SerializeField] [Range(0f, 1f)] private float confidenceAdvantageToIgnoreDistance = 0.08f;
 
     public event Action<int> OnNumberRecognized;
     public event Action OnNumberNotRecognized;
@@ -197,9 +199,10 @@ public class NumberRecognitionController : MonoBehaviour
         }
 
         recognizedNumberText.text = chosen.NumberString;
+        bool isCorrect = chosen.HelpsEnemy;
 
         if (drawer != null)
-            drawer.PlayRecognizedNumberPop(recognizedNumberRect, recognizedNumberCanvasGroup);
+            drawer.PlayRecognizedNumberPop(recognizedNumberRect, isCorrect, recognizedNumberCanvasGroup, tmpText: recognizedNumberText);
 
         OnNumberRecognized?.Invoke(chosen.NumberValue);
 
@@ -218,30 +221,42 @@ public class NumberRecognitionController : MonoBehaviour
         if (!enableAssist || _playerController == null || candidates.Count == 1)
             return topPath;
 
-        List<WholeNumberCandidate> viableCandidates = new List<WholeNumberCandidate>(candidates.Count);
+        List<WholeNumberCandidate> usefulCandidates = new List<WholeNumberCandidate>(candidates.Count);
+
         for (int i = 0; i < candidates.Count; i++)
         {
-            if (candidates[i].HelpsEnemy)
-                viableCandidates.Add(candidates[i]);
+            WholeNumberCandidate candidate = candidates[i];
+
+            if (_playerController.TryGetBestAssistDistance(candidate.NumberValue, out float closestDistance))
+            {
+                candidate.HelpsEnemy = true;
+                candidate.ClosestDistance = closestDistance;
+                usefulCandidates.Add(candidate);
+            }
+            else
+            {
+                candidate.HelpsEnemy = false;
+                candidate.ClosestDistance = float.PositiveInfinity;
+            }
         }
 
-        if (viableCandidates.Count == 0)
+        if (usefulCandidates.Count == 0)
             return topPath;
 
-        viableCandidates.Sort((a, b) =>
+        usefulCandidates.Sort((a, b) =>
         {
-            int confidenceCompare = b.CombinedConfidence.CompareTo(a.CombinedConfidence);
-            if (confidenceCompare != 0)
-                return confidenceCompare;
-
             int distanceCompare = a.ClosestDistance.CompareTo(b.ClosestDistance);
             if (distanceCompare != 0)
                 return distanceCompare;
 
+            int confidenceCompare = b.CombinedConfidence.CompareTo(a.CombinedConfidence);
+            if (confidenceCompare != 0)
+                return confidenceCompare;
+
             return string.CompareOrdinal(a.NumberString, b.NumberString);
         });
 
-        return viableCandidates[0];
+        return usefulCandidates[0];
     }
 
     private List<WholeNumberCandidate> BuildWholeNumberCandidates(List<List<MnistRecognizer.DigitPrediction>> digitPredictions)
@@ -262,24 +277,6 @@ public class NumberRecognitionController : MonoBehaviour
 
         if (results.Count > maxWholeNumberCandidates)
             results.RemoveRange(maxWholeNumberCandidates, results.Count - maxWholeNumberCandidates);
-
-        if (_playerController != null)
-        {
-            for (int i = 0; i < results.Count; i++)
-            {
-                WholeNumberCandidate c = results[i];
-                c.HelpsEnemy = _playerController.TryGetBestAssistDistance(c.NumberValue, out c.ClosestDistance);
-            }
-        }
-        else
-        {
-            for (int i = 0; i < results.Count; i++)
-            {
-                WholeNumberCandidate c = results[i];
-                c.HelpsEnemy = false;
-                c.ClosestDistance = float.PositiveInfinity;
-            }
-        }
 
         return results;
     }
