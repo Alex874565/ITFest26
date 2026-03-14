@@ -45,6 +45,28 @@ public class ScreenScaler : MonoBehaviour
         ScaleCollider();
         ScaleBackground();
     }
+    
+    int lastWidth;
+    int lastHeight;
+
+    void Start()
+    {
+        lastWidth = Screen.width;
+        lastHeight = Screen.height;
+    }
+
+    void Update()
+    {
+        if (Screen.width != lastWidth || Screen.height != lastHeight)
+        {
+            lastWidth = Screen.width;
+            lastHeight = Screen.height;
+
+            AdjustCamera();
+            ScaleCollider();
+            ScaleBackground();
+        }
+    }
 
     private void AdjustCamera()
     {
