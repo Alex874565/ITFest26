@@ -1,48 +1,54 @@
 ﻿using UnityEngine;
 using System;
-using System.Collections.Generic;
+using UnityEngine.Serialization;
 
-[RequireComponent(typeof(EnemyMovementController), typeof(EnemyVisualController))]
+[RequireComponent(typeof(EnemyMovementController))]
 public class EnemyController : MonoBehaviour, IReachPlayer, IDisappear
 {
+    [SerializeField] private int preparationTime = 2;
     [SerializeField] private EquationsCategoriesDatabase equationsCategoriesDatabase;
-    [SerializeField] private EnemySpawner enemySpawner;
+    [SerializeField] private EnemyVisualController visualController;
+    
+    private EnemySpawner enemySpawner;
     
     public event Action<EquationType> OnDisappear;
     public event Action OnAttackFinished;
 
     private EnemyFactory _factory;
     
-    private EquationType _equationType;
+    public EquationType EquationType { get; private set; }
     private EquationData _equationData;
     private EnemyStats _stats;
     
-    private EnemyVisualController _visualController;
     private EnemyMovementController _movementController;
+    
+    private delegate int GetCurrentLevelDelegate(EquationType equationType);
+    private GetCurrentLevelDelegate GetDifficultyLevel;
     
     private void Awake()
     {
-        _visualController = GetComponent<EnemyVisualController>();
         _movementController = GetComponent<EnemyMovementController>();
+        visualController.OnAttackAnimationFinished += FinishAttack;
     }
 
     private void OnEnable()
     {
         if(_movementController != null)
-            _movementController.OnFlip += _visualController.Flip;
+            _movementController.OnFlip += visualController.Flip;
     }
 
     private void OnDisable()
     {
         if (_movementController != null)
-            _movementController.OnFlip -= _visualController.Flip;
+            _movementController.OnFlip -= visualController.Flip;
     }
     
     public void Instantiate(EquationType equationType, EnemyStats stats, PlayerController playerController)
     {
         Debug.Log(equationType);
-        _equationType = equationType;
+        EquationType = equationType;
         _movementController.Instantiate(stats, playerController.gameObject.transform.position);
+        GetDifficultyLevel = playerController.GetDifficultyLevel;
     }
     
     public bool CanDisappear(int answer)
@@ -63,8 +69,8 @@ public class EnemyController : MonoBehaviour, IReachPlayer, IDisappear
 
     public void ReachPlayer()
     {
-        _movementController.ReachPlayer();
-        FinishAttack();
+        _movementController.ReachPlayer(preparationTime);
+        visualController.ReachPlayer(preparationTime);
     }
 
     public void FinishAttack()
@@ -79,18 +85,72 @@ public class EnemyController : MonoBehaviour, IReachPlayer, IDisappear
     
     public void ResetValues()
     {
-        _equationData = GetRandomEquationData(_equationType);
+        _equationData = GetRandomEquationData(EquationType);
         _movementController.ResetValues();
-        _visualController.ResetValues(_equationData);
+        visualController.ResetValues(_equationData);
     }
     
     private EquationData GetRandomEquationData(EquationType equationType)
     {
-        EquationCategoryData equationCategoryData = equationsCategoriesDatabase.GetEquationCategoryData(equationType);
-        if (equationCategoryData == null) return null;
-        List<EquationData> equationDatas = equationCategoryData.Equations;
-        int index = UnityEngine.Random.Range(0, equationDatas.Count);
-        return equationDatas[index];
+        EquationCategoryData categoryData = equationsCategoriesDatabase.GetEquationCategoryData(equationType);
+        if (categoryData == null) return null;
+
+        int difficultyLevel = GetDifficultyLevel(equationType);
+        int max = GetMaxForLevel(categoryData, difficultyLevel);
+
+        int x;
+        int y;
+        int answer;
+        string equation;
+
+        switch (equationType)
+        {
+            case EquationType.Addition:
+                x = UnityEngine.Random.Range(1, max + 1);
+                y = UnityEngine.Random.Range(1, max + 1);
+                answer = x + y;
+                equation = $"{x} + {y}";
+                break;
+
+            case EquationType.Subtraction:
+                x = UnityEngine.Random.Range(1, max + 1);
+                y = UnityEngine.Random.Range(1, x + 1); // keeps result non-negative
+                answer = x - y;
+                equation = $"{x} - {y}";
+                break;
+
+            case EquationType.Multiplication:
+                x = UnityEngine.Random.Range(1, max + 1);
+                y = UnityEngine.Random.Range(1, max + 1);
+                answer = x * y;
+                equation = $"{x} × {y}";
+                break;
+
+            case EquationType.Division:
+                y = UnityEngine.Random.Range(1, max + 1);   // divisor
+                answer = UnityEngine.Random.Range(1, max + 1); // quotient
+                x = y * answer; // guarantees whole division
+                equation = $"{x} / {y}";
+                break;
+
+            default:
+                return null;
+        }
+
+        return new EquationData(equationType, equation, answer);
+    }
+
+    private int GetMaxForLevel(EquationCategoryData categoryData, int difficultyLevel)
+    {
+        if (categoryData.DifficultyLevels == null || categoryData.DifficultyLevels.Count == 0)
+        {
+            Debug.LogWarning($"No difficulty levels. Defaulting to max=0.");
+            return 0;
+        }
+
+        DifficultyLevelStats bestMatch = categoryData.DifficultyLevels[Mathf.Min(difficultyLevel, categoryData.DifficultyLevels.Count - 1)];
+
+        return bestMatch.MaxNumber;
     }
     
     public int CountEnemiesSolvedBy(int number)

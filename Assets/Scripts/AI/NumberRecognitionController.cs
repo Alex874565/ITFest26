@@ -25,12 +25,6 @@ public class NumberRecognitionController : MonoBehaviour
     [SerializeField] private bool createDebugTexture = false;
     [SerializeField] private bool onlyShowFirstDebugDigit = true;
 
-    [Header("Debug - Whole Number Assist")]
-    [SerializeField] private bool debugAssistLogs = true;
-    [SerializeField] private bool debugLogDigitPredictions = true;
-    [SerializeField] private bool debugLogWholeCandidates = true;
-    [SerializeField] private TextMeshProUGUI debugAssistText;
-
     [Header("Performance")]
     [SerializeField] private bool skipIfBusy = true;
     [SerializeField] private int predictOneEveryNFrames = 0;
@@ -38,12 +32,7 @@ public class NumberRecognitionController : MonoBehaviour
 
     [Header("Whole Number Assist")]
     [SerializeField] private bool enableAssist = true;
-    [SerializeField] [Range(1, 4)] private int assistTopKPerDigit = 2;
-    [SerializeField] [Range(0f, 1f)] private float assistConfidenceGap = 0.08f;
-    [SerializeField] private bool onlyAssistWhenTopWholeNumberDoesNotHelp = true;
-    [SerializeField] private bool preferCloserEnemy = true;
-    [SerializeField] [Min(0f)] private float minimumDistanceAdvantage = 0.25f;
-    [SerializeField] private bool useConfidenceAsTieBreaker = true;
+    [SerializeField, Range(1, 4)] private int assistTopKPerDigit = 2;
 
     public event Action<int> OnNumberRecognized;
     public event Action OnNumberNotRecognized;
@@ -62,14 +51,13 @@ public class NumberRecognitionController : MonoBehaviour
         public float CombinedConfidence;
         public bool HelpsEnemy;
         public float ClosestDistance;
-        public bool IsTopPath;
     }
 
     private void Awake()
     {
         _playerController = GetComponent<PlayerController>();
         if (_playerController == null)
-            _playerController = FindObjectOfType<PlayerController>();
+            _playerController = FindFirstObjectByType<PlayerController>();
     }
 
     private void OnEnable()
@@ -119,7 +107,6 @@ public class NumberRecognitionController : MonoBehaviour
     private IEnumerator RecognizeNumberCoroutine()
     {
         _isBusy = true;
-        ClearDebugAssistText();
 
         _segmentationCts?.Cancel();
         _segmentationCts?.Dispose();
@@ -160,22 +147,22 @@ public class NumberRecognitionController : MonoBehaviour
 
         if (candidates == null || candidates.Count == 0)
         {
-            AppendDebug("No digit candidates found.");
             OnNumberNotRecognized?.Invoke();
             FinishRecognition();
             yield break;
         }
 
-        List<List<MnistRecognizer.DigitPrediction>> digitPredictions = new List<List<MnistRecognizer.DigitPrediction>>(candidates.Count);
+        int topK = Mathf.Max(1, assistTopKPerDigit);
+        List<List<MnistRecognizer.DigitPrediction>> digitPredictions =
+            new List<List<MnistRecognizer.DigitPrediction>>(candidates.Count);
 
         for (int i = 0; i < candidates.Count; i++)
         {
             List<MnistRecognizer.DigitPrediction> predictions =
-                recognizer.PredictTopDigits(candidates[i].mnistPixels, Mathf.Max(1, assistTopKPerDigit));
+                recognizer.PredictTopDigits(candidates[i].mnistPixels, topK);
 
             if (predictions == null || predictions.Count == 0)
             {
-                AppendDebug($"Digit {i}: no predictions.");
                 OnNumberNotRecognized?.Invoke();
                 FinishRecognition();
                 yield break;
@@ -183,22 +170,16 @@ public class NumberRecognitionController : MonoBehaviour
 
             digitPredictions.Add(predictions);
 
-            if (debugLogDigitPredictions)
-                AppendDigitPredictionDebug(i, predictions);
-
-            if (createDebugTexture && debugDigit != null)
+            if (createDebugTexture && debugDigit != null && (!onlyShowFirstDebugDigit || i == 0))
             {
-                if (!onlyShowFirstDebugDigit || i == 0)
+                if (_debugTexture != null)
                 {
-                    if (_debugTexture != null)
-                    {
-                        Destroy(_debugTexture);
-                        _debugTexture = null;
-                    }
-
-                    _debugTexture = segmenter.CreateDebugTexture(candidates[i].mnistPixels);
-                    debugDigit.texture = _debugTexture;
+                    Destroy(_debugTexture);
+                    _debugTexture = null;
                 }
+
+                _debugTexture = segmenter.CreateDebugTexture(candidates[i].mnistPixels);
+                debugDigit.texture = _debugTexture;
             }
 
             int framesToWait = Mathf.Max(0, predictOneEveryNFrames);
@@ -210,7 +191,6 @@ public class NumberRecognitionController : MonoBehaviour
 
         if (chosen == null)
         {
-            AppendDebug("No whole-number candidate selected.");
             OnNumberNotRecognized?.Invoke();
             FinishRecognition();
             yield break;
@@ -221,8 +201,6 @@ public class NumberRecognitionController : MonoBehaviour
         if (drawer != null)
             drawer.PlayRecognizedNumberPop(recognizedNumberRect, recognizedNumberCanvasGroup);
 
-        AppendDebug($"Final recognized number: {chosen.NumberString}");
-
         OnNumberRecognized?.Invoke(chosen.NumberValue);
 
         FinishRecognition();
@@ -232,90 +210,51 @@ public class NumberRecognitionController : MonoBehaviour
     {
         List<WholeNumberCandidate> candidates = BuildWholeNumberCandidates(digitPredictions);
 
-        if (candidates.Count == 0)
+        if (candidates == null || candidates.Count == 0)
             return null;
 
         WholeNumberCandidate topPath = candidates[0];
 
         if (!enableAssist || _playerController == null || candidates.Count == 1)
-        {
-            AppendDebug($"Assist disabled or unnecessary -> chose {topPath.NumberString}");
             return topPath;
+
+        List<WholeNumberCandidate> viableCandidates = new List<WholeNumberCandidate>(candidates.Count);
+        for (int i = 0; i < candidates.Count; i++)
+        {
+            if (candidates[i].HelpsEnemy)
+                viableCandidates.Add(candidates[i]);
         }
 
-        WholeNumberCandidate best = topPath;
-
-        bool canAssist = false;
-        if (candidates.Count > 1)
-        {
-            float gap = topPath.CombinedConfidence - candidates[1].CombinedConfidence;
-            canAssist = gap <= assistConfidenceGap;
-
-            if (!canAssist)
-            {
-                AppendDebug($"Top whole-number confidence clear ({topPath.NumberString}, gap {gap:0.000} > {assistConfidenceGap:0.000})");
-                return topPath;
-            }
-        }
-
-        if (onlyAssistWhenTopWholeNumberDoesNotHelp && topPath.HelpsEnemy)
-        {
-            AppendDebug($"Top whole number already helps -> kept {topPath.NumberString}");
+        if (viableCandidates.Count == 0)
             return topPath;
-        }
 
-        for (int i = 1; i < candidates.Count; i++)
+        viableCandidates.Sort((a, b) =>
         {
-            WholeNumberCandidate candidate = candidates[i];
+            int confidenceCompare = b.CombinedConfidence.CompareTo(a.CombinedConfidence);
+            if (confidenceCompare != 0)
+                return confidenceCompare;
 
-            if (candidate.HelpsEnemy && !best.HelpsEnemy)
-            {
-                best = candidate;
-                continue;
-            }
+            int distanceCompare = a.ClosestDistance.CompareTo(b.ClosestDistance);
+            if (distanceCompare != 0)
+                return distanceCompare;
 
-            if (!candidate.HelpsEnemy)
-                continue;
+            return string.CompareOrdinal(a.NumberString, b.NumberString);
+        });
 
-            if (preferCloserEnemy && best.HelpsEnemy)
-            {
-                bool meaningfullyCloser = candidate.ClosestDistance < (best.ClosestDistance - minimumDistanceAdvantage);
-                if (meaningfullyCloser)
-                {
-                    best = candidate;
-                    continue;
-                }
-            }
-
-            if (best.HelpsEnemy &&
-                useConfidenceAsTieBreaker &&
-                Mathf.Abs(candidate.ClosestDistance - best.ClosestDistance) <= minimumDistanceAdvantage &&
-                candidate.CombinedConfidence > best.CombinedConfidence)
-            {
-                best = candidate;
-            }
-        }
-
-        if (debugLogWholeCandidates)
-            AppendWholeCandidateDebug(candidates, best);
-
-        if (best.NumberValue != topPath.NumberValue)
-            AppendDebug($"ASSIST OVERRIDE {topPath.NumberString} -> {best.NumberString}");
-
-        return best;
+        return viableCandidates[0];
     }
 
     private List<WholeNumberCandidate> BuildWholeNumberCandidates(List<List<MnistRecognizer.DigitPrediction>> digitPredictions)
     {
-        List<WholeNumberCandidate> results = new List<WholeNumberCandidate>();
-        StringBuilder currentDigits = new StringBuilder();
+        List<WholeNumberCandidate> results = new List<WholeNumberCandidate>(maxWholeNumberCandidates);
+        StringBuilder currentDigits = new StringBuilder(digitPredictions.Count);
 
         BuildWholeNumberCandidatesRecursive(
             digitPredictions,
             0,
             currentDigits,
+            0L,
             1f,
-            true,
             results
         );
 
@@ -324,15 +263,19 @@ public class NumberRecognitionController : MonoBehaviour
         if (results.Count > maxWholeNumberCandidates)
             results.RemoveRange(maxWholeNumberCandidates, results.Count - maxWholeNumberCandidates);
 
-        for (int i = 0; i < results.Count; i++)
+        if (_playerController != null)
         {
-            WholeNumberCandidate c = results[i];
-            c.IsTopPath = (i == 0);
-
-            if (_playerController != null)
-                c.HelpsEnemy = _playerController.TryGetBestAssistDistance(c.NumberValue, out c.ClosestDistance);
-            else
+            for (int i = 0; i < results.Count; i++)
             {
+                WholeNumberCandidate c = results[i];
+                c.HelpsEnemy = _playerController.TryGetBestAssistDistance(c.NumberValue, out c.ClosestDistance);
+            }
+        }
+        else
+        {
+            for (int i = 0; i < results.Count; i++)
+            {
+                WholeNumberCandidate c = results[i];
                 c.HelpsEnemy = false;
                 c.ClosestDistance = float.PositiveInfinity;
             }
@@ -345,29 +288,26 @@ public class NumberRecognitionController : MonoBehaviour
         List<List<MnistRecognizer.DigitPrediction>> digitPredictions,
         int digitIndex,
         StringBuilder currentDigits,
+        long currentValue,
         float currentConfidence,
-        bool isTopPath,
         List<WholeNumberCandidate> results)
     {
-        if (results.Count > maxWholeNumberCandidates * 4)
+        if (results.Count >= maxWholeNumberCandidates * 4)
             return;
 
         if (digitIndex >= digitPredictions.Count)
         {
-            string numberString = currentDigits.ToString();
-
-            if (string.IsNullOrEmpty(numberString))
+            if (currentDigits.Length == 0)
                 return;
 
-            if (!int.TryParse(numberString, out int numberValue))
+            if (currentValue < int.MinValue || currentValue > int.MaxValue)
                 return;
 
             results.Add(new WholeNumberCandidate
             {
-                NumberString = numberString,
-                NumberValue = numberValue,
-                CombinedConfidence = currentConfidence,
-                IsTopPath = isTopPath
+                NumberString = currentDigits.ToString(),
+                NumberValue = (int)currentValue,
+                CombinedConfidence = currentConfidence
             });
 
             return;
@@ -381,74 +321,25 @@ public class NumberRecognitionController : MonoBehaviour
 
         for (int i = 0; i < predictions.Count; i++)
         {
-            MnistRecognizer.DigitPrediction p = predictions[i];
-            currentDigits.Append(p.Digit);
+            MnistRecognizer.DigitPrediction prediction = predictions[i];
 
-            BuildWholeNumberCandidatesRecursive(
-                digitPredictions,
-                digitIndex + 1,
-                currentDigits,
-                currentConfidence * p.Confidence,
-                isTopPath && i == 0,
-                results
-            );
+            currentDigits.Append(prediction.Digit);
+
+            long nextValue = currentValue * 10L + prediction.Digit;
+            if (nextValue >= 0L && nextValue <= int.MaxValue)
+            {
+                BuildWholeNumberCandidatesRecursive(
+                    digitPredictions,
+                    digitIndex + 1,
+                    currentDigits,
+                    nextValue,
+                    currentConfidence * prediction.Confidence,
+                    results
+                );
+            }
 
             currentDigits.Length = originalLength;
         }
-    }
-
-    private void AppendDigitPredictionDebug(int digitIndex, List<MnistRecognizer.DigitPrediction> predictions)
-    {
-        StringBuilder line = new StringBuilder();
-        line.Append($"Digit {digitIndex} predictions: ");
-
-        for (int i = 0; i < predictions.Count; i++)
-        {
-            MnistRecognizer.DigitPrediction p = predictions[i];
-            line.Append($"[{p.Digit} conf={p.Confidence:0.000}]");
-
-            if (i < predictions.Count - 1)
-                line.Append(" ");
-        }
-
-        AppendDebug(line.ToString());
-    }
-
-    private void AppendWholeCandidateDebug(List<WholeNumberCandidate> candidates, WholeNumberCandidate chosen)
-    {
-        AppendDebug("Whole-number candidates:");
-
-        for (int i = 0; i < candidates.Count; i++)
-        {
-            WholeNumberCandidate c = candidates[i];
-
-            string marker = c == chosen ? " <-- chosen" : "";
-            string helpText = c.HelpsEnemy
-                ? $"helps dist={c.ClosestDistance:0.00}"
-                : "no-help";
-
-            AppendDebug($"  {c.NumberString} conf={c.CombinedConfidence:0.000000} {helpText}{marker}");
-        }
-    }
-
-    private void AppendDebug(string message)
-    {
-        if (debugAssistLogs)
-            Debug.Log("[Recognizer] " + message);
-
-        if (debugAssistText != null)
-        {
-            if (string.IsNullOrEmpty(debugAssistText.text))
-                debugAssistText.text = message;
-            else
-                debugAssistText.text += "\n" + message;
-        }
-    }
-
-    private void ClearDebugAssistText()
-    {
-        if (debugAssistText != null)
-            debugAssistText.text = string.Empty;
     }
 
     private void FinishRecognition()

@@ -39,7 +39,8 @@ public class EndGameUI : MonoBehaviour
                 continue;
 
             EquationProgressBarUI bar = Instantiate(barPrefab, barsParent);
-            bar.Setup(type, previousScore, newScore, categoryData.AchievmentThresholds);
+            List<int> thresholdLevels = categoryData.AchievmentThresholds;
+            bar.Setup(type, previousScore, newScore, thresholdLevels);
             spawnedBars.Add(bar);
         }
     }

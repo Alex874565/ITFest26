@@ -28,6 +28,7 @@ public class PlayerManager : MonoBehaviour
             return;
 
         playerController.OnDeathWithData += HandlePlayerDeath;
+        playerController.OnDeath += () => SetMoney(Money + playerController.Money);
     }
 
     private void OnDisable()
@@ -70,6 +71,13 @@ public class PlayerManager : MonoBehaviour
 
         EquationLevels[equationType] = level;
     }
+
+    public void SetMoney(int money)
+    {
+        Debug.Log($"Money: {money}");
+        Money = money;
+        Save();
+    }
     
     public void HandlePlayerDeath(Dictionary<EquationType, int> equationScores)
     {
@@ -85,26 +93,21 @@ public class PlayerManager : MonoBehaviour
         multiplicationScore += previousScores[EquationType.Multiplication];
         divisionScore += previousScores[EquationType.Division];
         
-        Debug.Log($"Player Death Scores - Addition: {additionScore}, Subtraction: {subtractionScore}, Multiplication: {multiplicationScore}, Division: {divisionScore}");
-
-        Dictionary<EquationType, int> newScores = new Dictionary<EquationType, int>()
-        {
-            { EquationType.Addition, additionScore },
-            { EquationType.Subtraction, subtractionScore },
-            { EquationType.Multiplication, multiplicationScore },
-            { EquationType.Division, divisionScore },
-        };
+        SetEquationHighScore(EquationType.Addition, additionScore);
+        SetEquationHighScore(EquationType.Subtraction, subtractionScore);
+        SetEquationHighScore(EquationType.Multiplication, multiplicationScore);
+        SetEquationHighScore(EquationType.Division, divisionScore);
         
-        EquationHighScores = new Dictionary<EquationType, int>(newScores);
+        EquationHighScores = new Dictionary<EquationType, int>(EquationHighScores);
 
         Save();
 
-        foreach (var score in newScores)
+        foreach (var score in EquationHighScores)
         {
             Debug.Log($"Equation: {score.Key}, Previous High Score: {previousScores[score.Key]}, New High Score: {score.Value}");
         }
         // Send previousScores and newScores to the end game UI here
-        OnEndGameScoresCalculated?.Invoke(previousScores, newScores);
+        OnEndGameScoresCalculated?.Invoke(previousScores, EquationHighScores);
     }
 
     private void Save()

@@ -14,4 +14,11 @@ public class EquationData
         Equation = data.Equation;
         Answer = data.Answer;
     }
+    
+    public EquationData(EquationType type, string equation, int answer)
+    {
+        Type = type;
+        Equation = equation;
+        Answer = answer;
+    }
 }

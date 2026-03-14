@@ -13,14 +13,23 @@ MonoBehaviour:
   m_Name: Subtraction Data
   m_EditorClassIdentifier: 
   <Type>k__BackingField: 1
-  <AchievmentThresholds>k__BackingField: 0a000000140000001e00000028000000
-  <Equations>k__BackingField:
-  - Type: 1
-    <Equation>k__BackingField: 5 - 1
-    <Answer>k__BackingField: 4
-  - Type: 1
-    <Equation>k__BackingField: 90 - 5
-    <Answer>k__BackingField: 85
-  - Type: 1
-    <Equation>k__BackingField: 170 - 20
-    <Answer>k__BackingField: 150
+  <AchievmentThresholds>k__BackingField: 0a0000001e000000320000004b00000064000000
+  <DifficultyLevels>k__BackingField:
+  - <PassThreshold>k__BackingField: 2
+    <MinAnswers>k__BackingField: 5
+    <MaxNumber>k__BackingField: 4
+  - <PassThreshold>k__BackingField: 10
+    <MinAnswers>k__BackingField: 5
+    <MaxNumber>k__BackingField: 9
+  - <PassThreshold>k__BackingField: 2
+    <MinAnswers>k__BackingField: 5
+    <MaxNumber>k__BackingField: 49
+  - <PassThreshold>k__BackingField: 2
+    <MinAnswers>k__BackingField: 5
+    <MaxNumber>k__BackingField: 99
+  - <PassThreshold>k__BackingField: 2
+    <MinAnswers>k__BackingField: 5
+    <MaxNumber>k__BackingField: 499
+  - <PassThreshold>k__BackingField: 2
+    <MinAnswers>k__BackingField: 100
+    <MaxNumber>k__BackingField: 999

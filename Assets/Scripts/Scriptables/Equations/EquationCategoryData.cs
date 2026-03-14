@@ -6,21 +6,11 @@ public class EquationCategoryData : ScriptableObject
 {
     [field: SerializeField] public EquationType Type { get; private set; }
     [field: SerializeField] public List<int> AchievmentThresholds { get; private set; }
-    [field: SerializeField] public List<EquationData> Equations { get; private set; }
+    [field: SerializeField] public List<DifficultyLevelStats> DifficultyLevels { get; private set; }
 
-    private void OnEnable()
+    public EquationCategoryData(EquationCategoryData equationCategoryData)
     {
-        foreach (var equation in Equations)
-        {
-            equation.Type = Type;
-        }
-    }
-    
-    private void OnValidate()
-    {
-        foreach (var equation in Equations)
-        {
-            equation.Type = Type;
-        }
+        Type = equationCategoryData.Type;
+        AchievmentThresholds = new List<int>(equationCategoryData.AchievmentThresholds);
     }
 }
