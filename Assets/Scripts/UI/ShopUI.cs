@@ -6,11 +6,16 @@ using UnityEngine.PlayerLoop;
 
 public class ShopUI : MonoBehaviour
 {
+    [SerializeField] private RectTransform rowsParent;
+    [SerializeField] private GameObject rowPrefab;
+    [SerializeField] private GameObject itemPrefab;
     [SerializeField] private TextMeshProUGUI moneyText;
     [SerializeField] private Button hubButton;
     [SerializeField] private Button settingsButton;
     [SerializeField] private MenuStaggerAnimation stagger;
-    [SerializeField] private CosmeticItemUI[] cosmetics;
+    [SerializeField] private UnlockablesDatabase unlockablesDatabase;
+    
+    private PlayerManager playerManager;
     
     private void Awake()
     {
@@ -25,6 +30,7 @@ public class ShopUI : MonoBehaviour
     }
     private void Start()
     {
+        playerManager = ServiceLocator.Instance.PlayerManager;
         gameObject.SetActive(false);
     }
 
@@ -35,15 +41,22 @@ public class ShopUI : MonoBehaviour
         Debug.Log(ServiceLocator.Instance.PlayerManager);
         moneyText.text = ServiceLocator.Instance.PlayerManager.Money.ToString();
 
-        cosmetics[0].Initialize(100, false, false);
-        cosmetics[1].Initialize(200, true, false);
-        cosmetics[2].Initialize(500, true, true);
-        cosmetics[3].Initialize(100, false, false);
-        cosmetics[4].Initialize(100, false, false);
-        cosmetics[5].Initialize(100, false, false);
-        cosmetics[6].Initialize(100, false, false);
-        cosmetics[7].Initialize(100, false, false);
-
+        foreach(Transform child in rowsParent)
+        {
+            Destroy(child.gameObject);
+        }
+        
+        foreach (CategoryUnlockables category in unlockablesDatabase.UnlockableCategories)
+        {
+            GameObject go = Instantiate(rowPrefab, rowsParent);
+            for(int i = 0; i < category.Unlockables.Count; i++)
+            {
+                GameObject itemGo = Instantiate(itemPrefab, go.transform);
+                CosmeticItemUI item = itemGo.GetComponent<CosmeticItemUI>();
+                item.OnUpdateMoney += UpdateMoney;
+                item.Initialize(category.Unlockables[i], i);
+            }
+        }
         gameObject.SetActive(true);
         stagger.OpenMenu();
     }
@@ -54,6 +67,11 @@ public class ShopUI : MonoBehaviour
         {
             gameObject.SetActive(false);
         });
+    }
+
+    private void UpdateMoney(int money)
+    {
+        moneyText.text = money.ToString();
     }
     
 }

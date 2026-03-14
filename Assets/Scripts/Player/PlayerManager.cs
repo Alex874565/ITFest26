@@ -51,7 +51,7 @@ public class PlayerManager : MonoBehaviour
         return Money >= unlockablesDatabase.GetUnlockable(unlockable, index).Cost;
     }
 
-    public bool IsItemEquippable(UnlockableType unlockable, int index)
+    public bool IsItemOwned(UnlockableType unlockable, int index)
     {
         return Unlocks[unlockable][index] == CosmeticState.Owned;
     }
@@ -71,10 +71,11 @@ public class PlayerManager : MonoBehaviour
 
     public void UnlockItem(UnlockableType unlockable, int index)
     {
-        Unlocks[unlockable][index] = CosmeticState.Equipped;
+        Unlocks[unlockable][index] = CosmeticState.Owned;
+        Save();
     }
     
-    private void EquipUnlockable(UnlockableType unlockable, int index)
+    public void EquipUnlockable(UnlockableType unlockable, int index)
     {
         List<CosmeticState> unlockablesStatus = Unlocks[unlockable];
         if (unlockablesStatus == null) return;
@@ -89,6 +90,7 @@ public class PlayerManager : MonoBehaviour
                 Unlocks[unlockable][i] = CosmeticState.Equipped;
             }
         }
+        Save();
     }
 
     private void ToggleSelectEquation(EquationType equationType)
@@ -130,7 +132,6 @@ public class PlayerManager : MonoBehaviour
 
     public void SetMoney(int money)
     {
-        Debug.Log($"Money: {money}");
         Money = money;
         Save();
     }

@@ -17,7 +17,6 @@ public class UnlockableItemController : MonoBehaviour
     private void Initialize()
     {
         UnlockableData data = playerManager.GetEquippedItemData(type);
-        Debug.Log(data);
         if(data != null)
             spriteRenderer.sprite = data.Sprite;
     }
