@@ -12,6 +12,8 @@ public class EnemySpawner : MonoBehaviour
     [SerializeField] private float _minSpawnTime = 0.25f;
     [SerializeField] private float _maxSpawnTime = 5f;
 
+    public List<EnemyController> ActiveEnemies => _enemyFactory.ActiveEnemies;
+    
     private List<EquationType> _allowedTypes;
     private BoxCollider2D _boxCollider2D;
 
@@ -21,14 +23,7 @@ public class EnemySpawner : MonoBehaviour
     private void Awake()
     {
         _boxCollider2D = GetComponent<BoxCollider2D>();
-        //_allowedTypes = SaveManager.Instance.SelectedEquations;
-        _allowedTypes = new List<EquationType>()
-        {
-            EquationType.Addition,
-            EquationType.Subtraction,
-            EquationType.Multiplication,
-            EquationType.Division,
-        };
+        _allowedTypes = SaveManager.Instance.SelectedEquations;
     }
 
     private void Start()

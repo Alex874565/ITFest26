@@ -6,11 +6,16 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
+using System;
+using TMPro;
 
 public class NumberRecognitionController : MonoBehaviour
 {
     [FormerlySerializedAs("draw")]
     [SerializeField] private Drawer drawer;
+    [SerializeField] private TextMeshProUGUI recognizedNumberText;
+    [SerializeField] private RectTransform recognizedNumberRect;
+    [SerializeField] private CanvasGroup recognizedNumberCanvasGroup;
 
     [SerializeField] private DigitSegmenter segmenter;
     [SerializeField] private MnistRecognizer recognizer;
@@ -23,11 +28,16 @@ public class NumberRecognitionController : MonoBehaviour
     [SerializeField] private bool skipIfBusy = true;
     [SerializeField] private bool onlyShowFirstDebugDigit = true;
     [SerializeField] private int predictOneEveryNFrames = 1;
+    
+    public event Action<int> OnNumberRecognized;
+    public event Action OnNumberNotRecognized;
 
     private CancellationTokenSource _segmentationCts;
     private Coroutine _recognizeRoutine;
     private bool _isBusy;
     private Texture2D _debugTexture;
+    
+    private PlayerController _playerController;
 
     private void Awake()
     {
@@ -112,6 +122,7 @@ public class NumberRecognitionController : MonoBehaviour
         if (candidates.Count == 0)
         {
             Debug.Log("No candidates found");
+            OnNumberNotRecognized?.Invoke();
             _isBusy = false;
             _recognizeRoutine = null;
             yield break;
@@ -142,7 +153,10 @@ public class NumberRecognitionController : MonoBehaviour
                 yield return null;
         }
 
-        Debug.Log(sb.ToString());
+        string number = sb.ToString();
+        recognizedNumberText.text = number;
+        drawer.PlayRecognizedNumberPop(recognizedNumberRect, recognizedNumberCanvasGroup);
+        OnNumberRecognized?.Invoke(int.Parse(number));
 
         _isBusy = false;
         _recognizeRoutine = null;
