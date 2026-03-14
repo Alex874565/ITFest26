@@ -11,31 +11,49 @@ public class InputManager : MonoBehaviour
     public event EventHandler OnEscapeAction;
 
     private InputAction press;
-    private InputAction _escapeAction;
+    private InputAction escapeAction;
 
     private void Awake()
     {
-        press = input.actions["Press"];
-        _escapeAction = input.actions["Escape"];
+        if (input == null)
+            input = GetComponent<PlayerInput>();
+
+        if (input == null)
+        {
+            return;
+        }
+
+        press = input.actions.FindAction("Press", true);
+        escapeAction = input.actions.FindAction("Escape", true);
     }
 
     private void OnEnable()
     {
+        if (input == null)
+            return;
+
+        input.ActivateInput();
+
         press.started += HandlePressStarted;
         press.canceled += HandlePressReleased;
-        _escapeAction.performed += Escape_performed;
-        press.Enable();
+        escapeAction.performed += HandleEscapePerformed;
     }
 
     private void OnDisable()
     {
-        press.started -= HandlePressStarted;
-        press.canceled -= HandlePressReleased;
-        _escapeAction.performed -= Escape_performed;
-        press.Disable();
+        if (press != null)
+        {
+            press.started -= HandlePressStarted;
+            press.canceled -= HandlePressReleased;
+        }
+
+        if (escapeAction != null)
+        {
+            escapeAction.performed -= HandleEscapePerformed;
+        }
     }
 
-    private void Escape_performed(InputAction.CallbackContext context)
+    private void HandleEscapePerformed(InputAction.CallbackContext context)
     {
         OnEscapeAction?.Invoke(this, EventArgs.Empty);
     }
