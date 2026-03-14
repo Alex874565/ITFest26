@@ -19,11 +19,6 @@ public class InputManager : MonoBehaviour
         _escapeAction = input.actions["Escape"];
     }
 
-    private void Start()
-    {
-        OnEscapeAction += ServiceLocator.Instance.GameManager.InputManager_OnEscapeAction;
-    }
-
     private void OnEnable()
     {
         press.started += HandlePressStarted;
@@ -38,11 +33,6 @@ public class InputManager : MonoBehaviour
         press.canceled -= HandlePressReleased;
         _escapeAction.performed -= Escape_performed;
         press.Disable();
-    }
-
-    private void OnDestroy()
-    {
-        OnEscapeAction -= ServiceLocator.Instance.GameManager.InputManager_OnEscapeAction;
     }
 
     private void Escape_performed(InputAction.CallbackContext context)

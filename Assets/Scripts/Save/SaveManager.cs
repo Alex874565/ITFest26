@@ -40,9 +40,9 @@ public class SaveManager : MonoBehaviour
             return new List<EquationType>()
             {
                 EquationType.Addition,
-                EquationType.Subtraction,
-                EquationType.Multiplication,
-                EquationType.Division,
+                //EquationType.Subtraction,
+                //EquationType.Multiplication,
+                //EquationType.Division,
             };
         }
     }
@@ -56,6 +56,8 @@ public class SaveManager : MonoBehaviour
         
         Instance = this;
         DontDestroyOnLoad(gameObject);
+        
+        Load();
     }
     
     public void Load()
@@ -64,12 +66,13 @@ public class SaveManager : MonoBehaviour
 
         if (File.Exists(path))
         {
+            Debug.Log("Save loaded");
             string json = File.ReadAllText(path);
             SaveData = JsonUtility.FromJson<SaveData>(json);
         }
         else
         {
-            SaveData = null;
+            SaveData = new SaveData();
         }
     }
 

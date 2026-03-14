@@ -14,5 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   <Stats>k__BackingField:
     <Type>k__BackingField: 3
-    <MovementSpeed>k__BackingField: 1
+    <MovementSpeed>k__BackingField: 0.5
   <Prefab>k__BackingField: {fileID: 859084673776252006, guid: 64b79a4891d98e94894f7ef3d55bc5ac, type: 3}

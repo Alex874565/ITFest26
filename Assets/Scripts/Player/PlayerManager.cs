@@ -1,48 +1,42 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using System.Collections.Generic;
 
 public class PlayerManager : MonoBehaviour
 {
     [SerializeField] private EquationsCategoriesDatabase equationsDatabase;
+    [SerializeField] private PlayerController playerController;
+
+    public event Action<Dictionary<EquationType, int>, Dictionary<EquationType, int>> OnEndGameScoresCalculated;
     
     public int Money { get; private set; }
     public Dictionary<EquationType, int> EquationLevels { get; private set; }
     public Dictionary<EquationType, int> EquationHighScores { get; private set; }
     public List<EquationType> SelectedEquations { get; private set; }
 
-    private void Awake()
+    private void Start()
     {
-        SaveManager.Instance.Load();
-        if(SaveManager.Instance.SaveData != null)
-        {
-            Money = SaveManager.Instance.Money;
-            EquationLevels = SaveManager.Instance.EquationLevels;
-            EquationHighScores = SaveManager.Instance.EquationHighScores;
-            SelectedEquations = SaveManager.Instance.SelectedEquations;
-        }
-        else
-        {
-            int money = 0;
+        Money = SaveManager.Instance.Money;
+        EquationLevels = SaveManager.Instance.EquationLevels;
+        EquationHighScores = SaveManager.Instance.EquationHighScores;
+        SelectedEquations = SaveManager.Instance.SelectedEquations;
+    }
+    
+    private void OnEnable()
+    {
+        if (playerController == null)
+            return;
 
-            EquationLevels = new Dictionary<EquationType, int>
-            {
-                { EquationType.Addition, 0 },
-                { EquationType.Subtraction, 0 },
-                { EquationType.Multiplication, 0 },
-                { EquationType.Division, 0 }
-            };
+        playerController.OnDeathWithData += HandlePlayerDeath;
+        playerController.OnDeath += () => SetMoney(Money + playerController.Money);
+    }
 
-            EquationHighScores = new Dictionary<EquationType, int>
-            {
-                { EquationType.Addition, 0 },
-                { EquationType.Subtraction, 0 },
-                { EquationType.Multiplication, 0 },
-                { EquationType.Division, 0 }
-            };
+    private void OnDisable()
+    {
+        if (playerController == null)
+            return;
 
-            SelectedEquations = new List<EquationType>();
-        }
-        Save();
+        playerController.OnDeathWithData -= HandlePlayerDeath;
     }
 
     private void ToggleSelectEquation(EquationType equationType)
@@ -58,20 +52,62 @@ public class PlayerManager : MonoBehaviour
         Save();
     }
 
-    private void SetEquationHighScore(EquationType equationType, int score)
+    public void SetEquationHighScore(EquationType equationType, int score)
     {
         EquationHighScores[equationType] = score;
+
         EquationCategoryData equationCategoryData = equationsDatabase.GetEquationCategoryData(equationType);
-        List<int> achievmentThresholds = equationCategoryData.AchievmentThresholds;
-        for (int i = 0; i < achievmentThresholds.Count; i++)
+        List<int> achievementThresholds = equationCategoryData.AchievmentThresholds;
+
+        int level = 0;
+
+        for (int i = 0; i < achievementThresholds.Count; i++)
         {
-            if (achievmentThresholds[i] < score)
-            {
-                EquationLevels[equationType] = i - 1;
+            if (score >= achievementThresholds[i])
+                level++;
+            else
                 break;
-            }
         }
+
+        EquationLevels[equationType] = level;
+    }
+
+    public void SetMoney(int money)
+    {
+        Debug.Log($"Money: {money}");
+        Money = money;
         Save();
+    }
+    
+    public void HandlePlayerDeath(Dictionary<EquationType, int> equationScores)
+    {
+        Dictionary<EquationType, int> previousScores = new Dictionary<EquationType, int>(EquationHighScores);
+        
+        int additionScore = equationScores.TryGetValue(EquationType.Addition, out int addScore) ? addScore : 0;
+        int subtractionScore = equationScores.TryGetValue(EquationType.Subtraction, out int subScore) ? subScore : 0;
+        int multiplicationScore = equationScores.TryGetValue(EquationType.Multiplication, out int mulScore) ? mulScore : 0;
+        int divisionScore = equationScores.TryGetValue(EquationType.Division, out int divScore) ? divScore : 0;
+        
+        additionScore += previousScores[EquationType.Addition];
+        subtractionScore += previousScores[EquationType.Subtraction];
+        multiplicationScore += previousScores[EquationType.Multiplication];
+        divisionScore += previousScores[EquationType.Division];
+        
+        SetEquationHighScore(EquationType.Addition, additionScore);
+        SetEquationHighScore(EquationType.Subtraction, subtractionScore);
+        SetEquationHighScore(EquationType.Multiplication, multiplicationScore);
+        SetEquationHighScore(EquationType.Division, divisionScore);
+        
+        EquationHighScores = new Dictionary<EquationType, int>(EquationHighScores);
+
+        Save();
+
+        foreach (var score in EquationHighScores)
+        {
+            Debug.Log($"Equation: {score.Key}, Previous High Score: {previousScores[score.Key]}, New High Score: {score.Value}");
+        }
+        // Send previousScores and newScores to the end game UI here
+        OnEndGameScoresCalculated?.Invoke(previousScores, EquationHighScores);
     }
 
     private void Save()

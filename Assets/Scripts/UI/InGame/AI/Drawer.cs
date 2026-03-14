@@ -43,6 +43,8 @@ public class Drawer : MonoBehaviour
     private Vector2 _lastDrawScreenPosition;
     private bool _hasLastDrawPosition;
 
+    private Sequence _recognizedNumberSequence;
+    
     private void Awake()
     {
         ServiceLocator.Instance.InputManager.OnPressStarted += OnPressedStarted;
@@ -169,58 +171,85 @@ public class Drawer : MonoBehaviour
     /// Pass in the RectTransform of the number label / bubble you want animated.
     /// </summary>
     public void PlayRecognizedNumberPop(RectTransform numberUI, CanvasGroup canvasGroup = null)
+{
+    if (numberUI == null)
+        return;
+
+    RectTransform parentRect = popAnchor != null ? popAnchor : numberUI.parent as RectTransform;
+    if (parentRect == null)
+        return;
+
+    Vector2 screenPos = _hasLastDrawPosition
+        ? _lastDrawScreenPosition
+        : RectTransformUtility.WorldToScreenPoint(null, drawSurface.rectTransform.position);
+
+    if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(
+            parentRect,
+            screenPos,
+            null,
+            out Vector2 localPoint))
     {
-        if (numberUI == null)
-            return;
-
-        RectTransform parentRect = popAnchor != null ? popAnchor : numberUI.parent as RectTransform;
-        if (parentRect == null)
-            return;
-
-        Vector2 screenPos = _hasLastDrawPosition
-            ? _lastDrawScreenPosition
-            : RectTransformUtility.WorldToScreenPoint(null, drawSurface.rectTransform.position);
-
-        if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                parentRect,
-                screenPos,
-                null,
-                out Vector2 localPoint))
-        {
-            localPoint = Vector2.zero;
-        }
-
-        numberUI.SetParent(parentRect, false);
-        numberUI.anchoredPosition = localPoint;
-        numberUI.localScale = Vector3.zero;
-        numberUI.localRotation = Quaternion.identity;
-
-        if (canvasGroup != null)
-            canvasGroup.alpha = 0f;
-
-        numberUI.DOKill();
-        if (canvasGroup != null)
-            canvasGroup.DOKill();
-
-        Sequence seq = DOTween.Sequence();
-
-        if (canvasGroup != null)
-            seq.Join(canvasGroup.DOFade(1f, 0.08f));
-
-        seq.Append(numberUI.DOScale(popScaleOvershoot, popDuration).SetEase(Ease.OutBack))
-            .Join(numberUI.DOAnchorPosY(localPoint.y + popMoveUp, popDuration + settleDuration).SetEase(Ease.OutQuad))
-            .Append(numberUI.DOScale(0.92f, settleDuration).SetEase(Ease.OutQuad))
-            .Append(numberUI.DOScale(1f, settleDuration).SetEase(Ease.OutQuad))
-            .Append(numberUI.DOPunchRotation(new Vector3(0f, 0f, popRotationPunch), wiggleDuration, 8, 0.6f))
-            .AppendInterval(0.35f);
-
-        if (canvasGroup != null)
-        {
-            seq.Append(canvasGroup.DOFade(0f, 0.2f));
-        }
-        else
-        {
-            seq.Append(numberUI.DOScale(0f, 0.2f).SetEase(Ease.InBack));
-        }
+        localPoint = Vector2.zero;
     }
+
+    // Kill the full old sequence, not just tweens on individual targets
+    if (_recognizedNumberSequence != null && _recognizedNumberSequence.IsActive())
+    {
+        _recognizedNumberSequence.Kill();
+        _recognizedNumberSequence = null;
+    }
+
+    numberUI.gameObject.SetActive(true);
+    numberUI.SetParent(parentRect, false);
+
+    // Hard reset all animated properties
+    numberUI.anchoredPosition = localPoint;
+    numberUI.localScale = Vector3.zero;
+    numberUI.localRotation = Quaternion.identity;
+
+    if (canvasGroup != null)
+    {
+        canvasGroup.alpha = 0f;
+    }
+
+    _recognizedNumberSequence = DOTween.Sequence();
+
+    if (canvasGroup != null)
+    {
+        _recognizedNumberSequence.Append(canvasGroup.DOFade(1f, 0.08f));
+        _recognizedNumberSequence.Join(numberUI.DOScale(popScaleOvershoot, popDuration).SetEase(Ease.OutBack));
+        _recognizedNumberSequence.Join(
+            numberUI.DOAnchorPos(localPoint + Vector2.up * popMoveUp, popDuration + settleDuration)
+                .SetEase(Ease.OutQuad));
+    }
+    else
+    {
+        _recognizedNumberSequence.Append(numberUI.DOScale(popScaleOvershoot, popDuration).SetEase(Ease.OutBack));
+        _recognizedNumberSequence.Join(
+            numberUI.DOAnchorPos(localPoint + Vector2.up * popMoveUp, popDuration + settleDuration)
+                .SetEase(Ease.OutQuad));
+    }
+
+    _recognizedNumberSequence.Append(numberUI.DOScale(0.92f, settleDuration).SetEase(Ease.OutQuad));
+    _recognizedNumberSequence.Append(numberUI.DOScale(1f, settleDuration).SetEase(Ease.OutQuad));
+    _recognizedNumberSequence.Append(
+        numberUI.DOPunchRotation(new Vector3(0f, 0f, popRotationPunch), wiggleDuration, 8, 0.6f));
+    _recognizedNumberSequence.AppendInterval(0.35f);
+
+    if (canvasGroup != null)
+    {
+        _recognizedNumberSequence.Append(canvasGroup.DOFade(0f, 0.2f));
+    }
+    else
+    {
+        _recognizedNumberSequence.Append(numberUI.DOScale(0f, 0.2f).SetEase(Ease.InBack));
+    }
+
+    _recognizedNumberSequence.OnComplete(() =>
+    {
+        numberUI.localRotation = Quaternion.identity;
+        numberUI.gameObject.SetActive(false);
+        _recognizedNumberSequence = null;
+    });
+}
 }

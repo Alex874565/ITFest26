@@ -13,14 +13,23 @@ MonoBehaviour:
   m_Name: Addition Data
   m_EditorClassIdentifier: 
   <Type>k__BackingField: 0
-  <AchievmentThresholds>k__BackingField: 0a00000064000000fa000000f4010000
-  <Equations>k__BackingField:
-  - Type: 0
-    <Equation>k__BackingField: 1 * 1
-    <Answer>k__BackingField: 1
-  - Type: 0
-    <Equation>k__BackingField: 3 * 11
-    <Answer>k__BackingField: 33
-  - Type: 0
-    <Equation>k__BackingField: 10 * 11
-    <Answer>k__BackingField: 110
+  <AchievmentThresholds>k__BackingField: 0a0000001e000000320000004b00000064000000
+  <DifficultyLevels>k__BackingField:
+  - <PassThreshold>k__BackingField: 2
+    <MinAnswers>k__BackingField: 5
+    <MaxNumber>k__BackingField: 4
+  - <PassThreshold>k__BackingField: 10
+    <MinAnswers>k__BackingField: 5
+    <MaxNumber>k__BackingField: 9
+  - <PassThreshold>k__BackingField: 2
+    <MinAnswers>k__BackingField: 5
+    <MaxNumber>k__BackingField: 49
+  - <PassThreshold>k__BackingField: 2
+    <MinAnswers>k__BackingField: 5
+    <MaxNumber>k__BackingField: 99
+  - <PassThreshold>k__BackingField: 2
+    <MinAnswers>k__BackingField: 5
+    <MaxNumber>k__BackingField: 499
+  - <PassThreshold>k__BackingField: 2
+    <MinAnswers>k__BackingField: 100
+    <MaxNumber>k__BackingField: 999

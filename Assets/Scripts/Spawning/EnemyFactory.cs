@@ -70,11 +70,16 @@ public class EnemyFactory : MonoBehaviour
             actionOnGet: enemy =>
             {
                 enemy.gameObject.SetActive(true);
-                enemy.Instantiate(equationType, enemyData.Stats, playerController);
+                enemy.ResetValues();
+                enemy.OnDisappear += playerController.AddScore;
+                enemy.OnAttackFinished += playerController.Die;
+                
                 ActiveEnemies.Add(enemy);
             },
             actionOnRelease: enemy =>
             {
+                enemy.OnAttackFinished -= playerController.Die;
+                enemy.OnDisappear -= playerController.AddScore;
                 enemy.gameObject.SetActive(false);
                 ActiveEnemies.Remove(enemy);
             },
@@ -82,6 +87,8 @@ public class EnemyFactory : MonoBehaviour
             {
                 if (enemy != null)
                 {
+                    enemy.OnAttackFinished -= playerController.Die;
+                    enemy.OnDisappear -= playerController.AddScore;
                     ActiveEnemies.Remove(enemy);
                     Destroy(enemy.gameObject);
                 }

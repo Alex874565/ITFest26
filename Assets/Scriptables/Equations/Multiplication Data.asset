@@ -13,14 +13,23 @@ MonoBehaviour:
   m_Name: Multiplication Data
   m_EditorClassIdentifier: 
   <Type>k__BackingField: 2
-  <AchievmentThresholds>k__BackingField: 0a00000064000000fa000000f4010000
-  <Equations>k__BackingField:
-  - Type: 2
-    <Equation>k__BackingField: 1 + 1
-    <Answer>k__BackingField: 2
-  - Type: 2
-    <Equation>k__BackingField: 7 + 81
-    <Answer>k__BackingField: 88
-  - Type: 2
-    <Equation>k__BackingField: 50 + 60
-    <Answer>k__BackingField: 110
+  <AchievmentThresholds>k__BackingField: 0a0000001e000000320000004b00000064000000
+  <DifficultyLevels>k__BackingField:
+  - <PassThreshold>k__BackingField: 2
+    <MinAnswers>k__BackingField: 5
+    <MaxNumber>k__BackingField: 4
+  - <PassThreshold>k__BackingField: 10
+    <MinAnswers>k__BackingField: 5
+    <MaxNumber>k__BackingField: 9
+  - <PassThreshold>k__BackingField: 2
+    <MinAnswers>k__BackingField: 5
+    <MaxNumber>k__BackingField: 49
+  - <PassThreshold>k__BackingField: 2
+    <MinAnswers>k__BackingField: 5
+    <MaxNumber>k__BackingField: 99
+  - <PassThreshold>k__BackingField: 2
+    <MinAnswers>k__BackingField: 5
+    <MaxNumber>k__BackingField: 499
+  - <PassThreshold>k__BackingField: 2
+    <MinAnswers>k__BackingField: 100
+    <MaxNumber>k__BackingField: 999
