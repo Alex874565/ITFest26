@@ -51,42 +51,42 @@ public class PlayerManager : MonoBehaviour
         return Money >= unlockablesDatabase.GetUnlockable(unlockable, index).Cost;
     }
 
-    public bool IsItemUnlocked(UnlockableType unlockable, int index)
+    public bool IsItemEquippable(UnlockableType unlockable, int index)
     {
-        return Unlocks[unlockable][index] == 0;
+        return Unlocks[unlockable][index] == CosmeticState.Owned;
     }
 
     public bool IsItemEquipped(UnlockableType unlockable, int index)
     {
-        return Unlocks[unlockable][index] > 0;
+        return Unlocks[unlockable][index] == CosmeticState.Equipped;
     }
 
     public UnlockableData GetEquippedItemData(UnlockableType unlockable)
     {
         if(Unlocks == null || Unlocks[unlockable] == null)
             return null;
-        int index = Unlocks[unlockable].FindIndex(status => status == 1);
+        int index = Unlocks[unlockable].FindIndex(status => status == CosmeticState.Equipped);
         return unlockablesDatabase.GetUnlockable(unlockable, index);
     }
 
     public void UnlockItem(UnlockableType unlockable, int index)
     {
-        Unlocks[unlockable][index] = 0;
+        Unlocks[unlockable][index] = CosmeticState.Equipped;
     }
     
     private void EquipUnlockable(UnlockableType unlockable, int index)
     {
-        List<int> unlockablesStatus = Unlocks[unlockable];
+        List<CosmeticState> unlockablesStatus = Unlocks[unlockable];
         if (unlockablesStatus == null) return;
         
         for(int i = 0; i < unlockablesStatus.Count; i++)
         {
-            if(unlockablesStatus[i] == 1) // If the item is unlocked
+            if(unlockablesStatus[i] == CosmeticState.Equipped) // If the item is unlocked
             {
-                Unlocks[unlockable][i] = 0;
+                Unlocks[unlockable][i] = CosmeticState.Owned;
             }else if (i == index)
             {
-                Unlocks[unlockable][i] = 1;
+                Unlocks[unlockable][i] = CosmeticState.Equipped;
             }
         }
     }

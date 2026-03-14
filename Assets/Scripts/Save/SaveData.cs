@@ -42,11 +42,17 @@ public class SaveData
         EquationLevels = new List<int> { 0, 0, 0, 0 };
         EquationHighScores = new List<int> { 0, 0, 0, 0 };
         SelectedEquations = new List<bool> { false, false, false, false };
-        Unlocks = new List<List<int>>()
+        Unlocks = new List<List<int>>();
+        foreach (UnlockableType type in Enum.GetValues(typeof(UnlockableType)))
         {
-            new List<int>(){1, -1, -1}, //Character unlocks
-            new List<int>(){1, -1 , -1}  //Background unlocks
-        };
+            List<int> states = new List<int>();
+            foreach (CosmeticState state in Enum.GetValues(typeof(CosmeticState)))
+            {
+                states.Add(0);
+            }
+            states[0] = 1;
+            Unlocks.Add(states);
+        }
     }
 
     public SaveData(SaveData saveData)
