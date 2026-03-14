@@ -1,7 +1,7 @@
 ﻿<Solution>
   <Project Path="Unity.Timeline.csproj" />
-  <Project Path="Unity.AppUI.csproj" />
   <Project Path="Unity.PlasticSCM.Editor.csproj" />
+  <Project Path="Unity.AppUI.csproj" />
   <Project Path="Unity.2D.Aseprite.Editor.csproj" />
   <Project Path="Unity.Mathematics.csproj" />
   <Project Path="Unity.Timeline.Editor.csproj" />
@@ -18,8 +18,8 @@
   <Project Path="Unity.2D.SpriteShape.Editor.csproj" />
   <Project Path="Unity.VisualStudio.Editor.csproj" />
   <Project Path="Unity.InputSystem.csproj" />
-  <Project Path="Unity.2D.Animation.Editor.csproj" />
   <Project Path="Unity.InferenceEngine.csproj" />
+  <Project Path="Unity.2D.Animation.Editor.csproj" />
   <Project Path="Unity.Searcher.Editor.csproj" />
   <Project Path="Unity.InferenceEngine.Tokenization.csproj" />
   <Project Path="Unity.2D.SpriteShape.Runtime.csproj" />
