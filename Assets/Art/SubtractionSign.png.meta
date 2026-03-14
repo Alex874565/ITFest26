@@ -1,10 +1,22 @@
 fileFormatVersion: 2
-guid: c5738dea8f8431f4e86c0c162fe198cc
+guid: db20edce570e1b2418f64ef0f65d6fac
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 1319196226495691481
-    second: GenericButton_0
+      213: -2979629546740756446
+    second: SubtractionSign_0
+  - first:
+      213: 4636325400897578363
+    second: SubtractionSign_1
+  - first:
+      213: 319127054146277378
+    second: SubtractionSign_2
+  - first:
+      213: 5451032802495671478
+    second: SubtractionSign_3
+  - first:
+      213: 6774146688568678357
+    second: SubtractionSign_4
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -46,7 +58,7 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 2
+  spriteMode: 1
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
@@ -100,13 +112,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: GenericButton_0
+      name: SubtractionSign_0
       rect:
         serializedVersion: 2
-        x: 0
-        y: 161
-        width: 468
-        height: 161
+        x: 5
+        y: 101
+        width: 70
+        height: 73
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,30 +127,96 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 9dabf458af9be4210800000000000000
-      internalID: 1319196226495691481
+      spriteID: 2205248c6ba36a6d0800000000000000
+      internalID: -2979629546740756446
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: GenericButton_1
+      name: SubtractionSign_1
       rect:
         serializedVersion: 2
-        x: 468
-        y: 161
-        width: 468
-        height: 161
+        x: 60
+        y: 66
+        width: 244
+        height: 51
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
-      spriteID: b00ff6d78a34fb74797348681e67dd2e
-      internalID: 519446685
+      spriteID: b75ee974369875040800000000000000
+      internalID: 4636325400897578363
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SubtractionSign_2
+      rect:
+        serializedVersion: 2
+        x: 296
+        y: 112
+        width: 52
+        height: 60
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2001b9c6d54cd6400800000000000000
+      internalID: 319127054146277378
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SubtractionSign_3
+      rect:
+        serializedVersion: 2
+        x: 6
+        y: 0
+        width: 51
+        height: 40
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6bca1cbf375f5ab40800000000000000
+      internalID: 5451032802495671478
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SubtractionSign_4
+      rect:
+        serializedVersion: 2
+        x: 256
+        y: 5
+        width: 92
+        height: 54
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5d75684b58a920e50800000000000000
+      internalID: 6774146688568678357
       vertices: []
       indices: 
       edges: []
@@ -147,7 +225,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 9707a924d6929c14d89ec9354dcabb62
+    spriteID: 5e97eb03825dee720800000000000000
     internalID: 0
     vertices: []
     indices: 
@@ -157,8 +235,11 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      GenericButton_0: 1319196226495691481
-      GenericButton_1: 519446685
+      SubtractionSign_0: -2979629546740756446
+      SubtractionSign_1: 4636325400897578363
+      SubtractionSign_2: 319127054146277378
+      SubtractionSign_3: 5451032802495671478
+      SubtractionSign_4: 6774146688568678357
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

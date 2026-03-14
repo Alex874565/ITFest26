@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: c5738dea8f8431f4e86c0c162fe198cc
+guid: d9f89cff256cab34ca8d7913259a6e4c
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 1319196226495691481
-    second: GenericButton_0
+      213: 6872602400091024990
+    second: ProgressBarBorder_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: GenericButton_0
+      name: ProgressBarBorder_0
       rect:
         serializedVersion: 2
-        x: 0
-        y: 161
-        width: 468
-        height: 161
+        x: 1
+        y: 0
+        width: 57
+        height: 271
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,30 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 9dabf458af9be4210800000000000000
-      internalID: 1319196226495691481
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: GenericButton_1
-      rect:
-        serializedVersion: 2
-        x: 468
-        y: 161
-        width: 468
-        height: 161
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: b00ff6d78a34fb74797348681e67dd2e
-      internalID: 519446685
+      spriteID: e5e2ce36873606f50800000000000000
+      internalID: 6872602400091024990
       vertices: []
       indices: 
       edges: []
@@ -147,7 +125,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 9707a924d6929c14d89ec9354dcabb62
+    spriteID: 
     internalID: 0
     vertices: []
     indices: 
@@ -157,8 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      GenericButton_0: 1319196226495691481
-      GenericButton_1: 519446685
+      ProgressBarBorder_0: 6872602400091024990
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

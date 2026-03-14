@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: c5738dea8f8431f4e86c0c162fe198cc
+guid: 1704bbf891abaae4e9582c4ae71934e0
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 1319196226495691481
-    second: GenericButton_0
+      213: -5201490252165766164
+    second: GreenGenericButton_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,11 +100,11 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: GenericButton_0
+      name: GreenGenericButton_0
       rect:
         serializedVersion: 2
         x: 0
-        y: 161
+        y: 0
         width: 468
         height: 161
       alignment: 0
@@ -115,18 +115,18 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 9dabf458af9be4210800000000000000
-      internalID: 1319196226495691481
+      spriteID: ce3a001ac2890d7b0800000000000000
+      internalID: -5201490252165766164
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: GenericButton_1
+      name: GreenGenericButton_1
       rect:
         serializedVersion: 2
         x: 468
-        y: 161
+        y: 0
         width: 468
         height: 161
       alignment: 0
@@ -137,8 +137,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: b00ff6d78a34fb74797348681e67dd2e
-      internalID: 519446685
+      spriteID: 8307c307793bcae4ba24a2dbc894cd8f
+      internalID: 4217476
       vertices: []
       indices: 
       edges: []
@@ -147,7 +147,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 9707a924d6929c14d89ec9354dcabb62
+    spriteID: 376a43ce40ab85b4b95b07f8487ea0e0
     internalID: 0
     vertices: []
     indices: 
@@ -157,8 +157,8 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      GenericButton_0: 1319196226495691481
-      GenericButton_1: 519446685
+      GreenGenericButton_0: -5201490252165766164
+      GreenGenericButton_1: 4217476
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: c5738dea8f8431f4e86c0c162fe198cc
+guid: 0e24249d02a3c294bba91ea1e46c9b11
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 1319196226495691481
-    second: GenericButton_0
+      213: 3986472439591237023
+    second: GenericBlueButton_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,11 +100,11 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: GenericButton_0
+      name: GenericBlueButton_0
       rect:
         serializedVersion: 2
         x: 0
-        y: 161
+        y: 0
         width: 468
         height: 161
       alignment: 0
@@ -115,18 +115,18 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 9dabf458af9be4210800000000000000
-      internalID: 1319196226495691481
+      spriteID: f9578b4009bc25730800000000000000
+      internalID: 3986472439591237023
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: GenericButton_1
+      name: GenericBlueButton_1
       rect:
         serializedVersion: 2
         x: 468
-        y: 161
+        y: 0
         width: 468
         height: 161
       alignment: 0
@@ -137,8 +137,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: b00ff6d78a34fb74797348681e67dd2e
-      internalID: 519446685
+      spriteID: 0fdca1739b7ccba41878c98ffc28bc3d
+      internalID: 1875060139
       vertices: []
       indices: 
       edges: []
@@ -147,7 +147,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 9707a924d6929c14d89ec9354dcabb62
+    spriteID: 0475ad88f291c8646a4f542a521878b0
     internalID: 0
     vertices: []
     indices: 
@@ -157,8 +157,8 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      GenericButton_0: 1319196226495691481
-      GenericButton_1: 519446685
+      GenericBlueButton_0: 3986472439591237023
+      GenericBlueButton_1: 1875060139
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

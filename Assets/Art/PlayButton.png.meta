@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: c5738dea8f8431f4e86c0c162fe198cc
+guid: 173f6f652092d87488003b7695ddec3a
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 1319196226495691481
-    second: GenericButton_0
+      213: -1958676783162264248
+    second: PlayButton_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: GenericButton_0
+      name: PlayButton_0
       rect:
         serializedVersion: 2
         x: 0
-        y: 161
-        width: 468
-        height: 161
+        y: 0
+        width: 326
+        height: 326
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,20 +115,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 9dabf458af9be4210800000000000000
-      internalID: 1319196226495691481
+      spriteID: 845fecdd7d161d4e0800000000000000
+      internalID: -1958676783162264248
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: GenericButton_1
+      name: PlayButton_1
       rect:
         serializedVersion: 2
-        x: 468
-        y: 161
-        width: 468
-        height: 161
+        x: 326
+        y: 0
+        width: 326
+        height: 326
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -137,8 +137,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: b00ff6d78a34fb74797348681e67dd2e
-      internalID: 519446685
+      spriteID: a948040b98e134d4ea85cccfd8a70a67
+      internalID: -974936592
       vertices: []
       indices: 
       edges: []
@@ -147,7 +147,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 9707a924d6929c14d89ec9354dcabb62
+    spriteID: 69e9a111fe625b74a8663a382225f235
     internalID: 0
     vertices: []
     indices: 
@@ -157,8 +157,8 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      GenericButton_0: 1319196226495691481
-      GenericButton_1: 519446685
+      PlayButton_0: -1958676783162264248
+      PlayButton_1: -974936592
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

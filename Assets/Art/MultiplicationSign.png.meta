@@ -1,0 +1,559 @@
+fileFormatVersion: 2
+guid: df14a25185c24e147b175425ad49c262
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 3218277365449951665
+    second: MultiplicationSign_0
+  - first:
+      213: -6749125361580686315
+    second: MultiplicationSign_1
+  - first:
+      213: 7370332807199001742
+    second: MultiplicationSign_2
+  - first:
+      213: 8476636781267415611
+    second: MultiplicationSign_3
+  - first:
+      213: 2892976794179881945
+    second: MultiplicationSign_4
+  - first:
+      213: 8394330346373769905
+    second: MultiplicationSign_5
+  - first:
+      213: -1569663247724905919
+    second: MultiplicationSign_6
+  - first:
+      213: -1391274039824627569
+    second: MultiplicationSign_7
+  - first:
+      213: -5960354734912714551
+    second: MultiplicationSign_8
+  - first:
+      213: 3060404171341012864
+    second: MultiplicationSign_9
+  - first:
+      213: 7410152720020019738
+    second: MultiplicationSign_10
+  - first:
+      213: -8107955217619296488
+    second: MultiplicationSign_11
+  - first:
+      213: 1974751879734511202
+    second: MultiplicationSign_12
+  - first:
+      213: 5394440933974890525
+    second: MultiplicationSign_13
+  - first:
+      213: -8689710079779614773
+    second: MultiplicationSign_14
+  - first:
+      213: -6237410466221029074
+    second: MultiplicationSign_15
+  - first:
+      213: -4638208765861223610
+    second: MultiplicationSign_16
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 1
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: MultiplicationSign_0
+      rect:
+        serializedVersion: 2
+        x: 1
+        y: 211
+        width: 99
+        height: 92
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1b90354763e99ac20800000000000000
+      internalID: 3218277365449951665
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MultiplicationSign_1
+      rect:
+        serializedVersion: 2
+        x: 122
+        y: 273
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5144766fd3a4652a0800000000000000
+      internalID: -6749125361580686315
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MultiplicationSign_2
+      rect:
+        serializedVersion: 2
+        x: 122
+        y: 257
+        width: 14
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e8c018173aea84660800000000000000
+      internalID: 7370332807199001742
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MultiplicationSign_3
+      rect:
+        serializedVersion: 2
+        x: 256
+        y: 257
+        width: 14
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b32747dcd3013a570800000000000000
+      internalID: 8476636781267415611
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MultiplicationSign_4
+      rect:
+        serializedVersion: 2
+        x: 264
+        y: 273
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9db4a80111be52820800000000000000
+      internalID: 2892976794179881945
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MultiplicationSign_5
+      rect:
+        serializedVersion: 2
+        x: 303
+        y: 198
+        width: 70
+        height: 103
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1bae3e699f6ae7470800000000000000
+      internalID: 8394330346373769905
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MultiplicationSign_6
+      rect:
+        serializedVersion: 2
+        x: 85
+        y: 66
+        width: 222
+        height: 180
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 14afe56b79f673ae0800000000000000
+      internalID: -1569663247724905919
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MultiplicationSign_7
+      rect:
+        serializedVersion: 2
+        x: 140
+        y: 244
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f88c70fc1a331bce0800000000000000
+      internalID: -1391274039824627569
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MultiplicationSign_8
+      rect:
+        serializedVersion: 2
+        x: 246
+        y: 244
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9c8c53aa2f0984da0800000000000000
+      internalID: -5960354734912714551
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MultiplicationSign_9
+      rect:
+        serializedVersion: 2
+        x: 20
+        y: 1
+        width: 83
+        height: 75
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 08f97ed016db87a20800000000000000
+      internalID: 3060404171341012864
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MultiplicationSign_10
+      rect:
+        serializedVersion: 2
+        x: 140
+        y: 61
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a1a103063a626d660800000000000000
+      internalID: 7410152720020019738
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MultiplicationSign_11
+      rect:
+        serializedVersion: 2
+        x: 246
+        y: 61
+        width: 6
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 81fd607ffa1ca7f80800000000000000
+      internalID: -8107955217619296488
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MultiplicationSign_12
+      rect:
+        serializedVersion: 2
+        x: 300
+        y: 4
+        width: 89
+        height: 69
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2664c173f5ab76b10800000000000000
+      internalID: 1974751879734511202
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MultiplicationSign_13
+      rect:
+        serializedVersion: 2
+        x: 122
+        y: 38
+        width: 14
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d18566fc277ecda40800000000000000
+      internalID: 5394440933974890525
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MultiplicationSign_14
+      rect:
+        serializedVersion: 2
+        x: 122
+        y: 33
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bcfca95f8b2f76780800000000000000
+      internalID: -8689710079779614773
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MultiplicationSign_15
+      rect:
+        serializedVersion: 2
+        x: 256
+        y: 38
+        width: 14
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e29879a6a344079a0800000000000000
+      internalID: -6237410466221029074
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MultiplicationSign_16
+      rect:
+        serializedVersion: 2
+        x: 264
+        y: 33
+        width: 6
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6432db4a3b5c1afb0800000000000000
+      internalID: -4638208765861223610
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      MultiplicationSign_0: 3218277365449951665
+      MultiplicationSign_1: -6749125361580686315
+      MultiplicationSign_10: 7410152720020019738
+      MultiplicationSign_11: -8107955217619296488
+      MultiplicationSign_12: 1974751879734511202
+      MultiplicationSign_13: 5394440933974890525
+      MultiplicationSign_14: -8689710079779614773
+      MultiplicationSign_15: -6237410466221029074
+      MultiplicationSign_16: -4638208765861223610
+      MultiplicationSign_2: 7370332807199001742
+      MultiplicationSign_3: 8476636781267415611
+      MultiplicationSign_4: 2892976794179881945
+      MultiplicationSign_5: 8394330346373769905
+      MultiplicationSign_6: -1569663247724905919
+      MultiplicationSign_7: -1391274039824627569
+      MultiplicationSign_8: -5960354734912714551
+      MultiplicationSign_9: 3060404171341012864
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

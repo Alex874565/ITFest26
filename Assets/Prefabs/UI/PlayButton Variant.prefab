@@ -99,15 +99,15 @@ PrefabInstance:
     - target: {fileID: 1625545857919190711, guid: 457a6d9c4eb376b45b470edc28b461c7, type: 3}
       propertyPath: m_SpriteState.m_PressedSprite
       value: 
-      objectReference: {fileID: 494036505, guid: 1638929c604618c4aaa31ebdad70c832, type: 3}
+      objectReference: {fileID: -974936592, guid: 173f6f652092d87488003b7695ddec3a, type: 3}
     - target: {fileID: 1625545857919190711, guid: 457a6d9c4eb376b45b470edc28b461c7, type: 3}
       propertyPath: m_SpriteState.m_SelectedSprite
       value: 
-      objectReference: {fileID: 494036505, guid: 1638929c604618c4aaa31ebdad70c832, type: 3}
+      objectReference: {fileID: -974936592, guid: 173f6f652092d87488003b7695ddec3a, type: 3}
     - target: {fileID: 1625545857919190711, guid: 457a6d9c4eb376b45b470edc28b461c7, type: 3}
       propertyPath: m_SpriteState.m_HighlightedSprite
       value: 
-      objectReference: {fileID: -2834816866031520189, guid: 1638929c604618c4aaa31ebdad70c832, type: 3}
+      objectReference: {fileID: -1958676783162264248, guid: 173f6f652092d87488003b7695ddec3a, type: 3}
     - target: {fileID: 4273815864987537292, guid: 457a6d9c4eb376b45b470edc28b461c7, type: 3}
       propertyPath: m_Type
       value: 0
@@ -115,7 +115,7 @@ PrefabInstance:
     - target: {fileID: 4273815864987537292, guid: 457a6d9c4eb376b45b470edc28b461c7, type: 3}
       propertyPath: m_Sprite
       value: 
-      objectReference: {fileID: -2834816866031520189, guid: 1638929c604618c4aaa31ebdad70c832, type: 3}
+      objectReference: {fileID: -1958676783162264248, guid: 173f6f652092d87488003b7695ddec3a, type: 3}
     - target: {fileID: 7772634804683899573, guid: 457a6d9c4eb376b45b470edc28b461c7, type: 3}
       propertyPath: m_text
       value: Play
@@ -127,6 +127,7 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects:
     - {fileID: 2724491463291540247, guid: 457a6d9c4eb376b45b470edc28b461c7, type: 3}
+    - {fileID: 1495612861246005370, guid: 457a6d9c4eb376b45b470edc28b461c7, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 457a6d9c4eb376b45b470edc28b461c7, type: 3}
