@@ -1,19 +1,19 @@
 using UnityEngine;
-using TMPro;
 using DG.Tweening;
 
 public class TapToContinueAnimation : MonoBehaviour
 {
-    [SerializeField] private TextMeshProUGUI text;
+    private Vector3 startPos;
+
+    [SerializeField] private float moveAmount = 8f;
+    [SerializeField] private float duration = 1f;
 
     private void Start()
     {
-        text.DOFade(0.3f, 1f)
-            .SetLoops(-1, LoopType.Yoyo)
-            .SetEase(Ease.InOutSine);
+        startPos = transform.localPosition;
 
-        transform.DOScale(1.05f, 1f)
-            .SetLoops(-1, LoopType.Yoyo)
-            .SetEase(Ease.InOutSine);
+        transform.DOLocalMoveY(startPos.y + moveAmount, duration)
+                 .SetLoops(-1, LoopType.Yoyo)
+                 .SetEase(Ease.InOutSine);
     }
 }
