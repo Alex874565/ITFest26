@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using System;
 
 public class ToggleButton : MonoBehaviour
 {
@@ -11,6 +12,8 @@ public class ToggleButton : MonoBehaviour
 
     public bool IsOn { get; private set; }
 
+    public event Action OnToggled;
+
     private void Awake()
     {
         button.onClick.AddListener(Toggle);
@@ -21,6 +24,14 @@ public class ToggleButton : MonoBehaviour
     {
         IsOn = !IsOn;
         UpdateVisual();
+        OnToggled?.Invoke();
+    }
+
+    public void SetState(bool value)
+    {
+        IsOn = value;
+        UpdateVisual();
+        OnToggled?.Invoke();
     }
 
     private void UpdateVisual()
