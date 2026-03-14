@@ -1,5 +1,5 @@
 ﻿public enum UnlockableType
 {
-    Character,
-    Background,
+    Character = 0,
+    Background = 1
 }

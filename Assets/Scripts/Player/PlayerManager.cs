@@ -5,16 +5,17 @@ using System.Collections.Generic;
 public class PlayerManager : MonoBehaviour
 {
     [SerializeField] private EquationsCategoriesDatabase equationsDatabase;
+    [SerializeField] private UnlockablesDatabase unlockablesDatabase;
     [SerializeField] private PlayerController playerController;
 
+    public event Action OnDataLoaded;
     public event Action<Dictionary<EquationType, int>, Dictionary<EquationType, int>, int> OnEndGameValuesCalculated;
     
     public int Money { get; private set; }
     public Dictionary<EquationType, int> EquationLevels { get; private set; }
     public Dictionary<EquationType, int> EquationHighScores { get; private set; }
+    public Dictionary<UnlockableType, List<CosmeticState>> Unlocks { get; private set; }
     public List<EquationType> SelectedEquations { get; private set; }
-    
-    public List<List<int>> Unlocks { get; private set; }
 
     private void Start()
     {
@@ -22,6 +23,8 @@ public class PlayerManager : MonoBehaviour
         EquationLevels = SaveManager.Instance.EquationLevels;
         EquationHighScores = SaveManager.Instance.EquationHighScores;
         SelectedEquations = SaveManager.Instance.SelectedEquations;
+        Unlocks = SaveManager.Instance.Unlocks;
+        OnDataLoaded?.Invoke();
     }
     
     private void OnEnable()
@@ -41,6 +44,53 @@ public class PlayerManager : MonoBehaviour
         playerController.OnDeathWithData -= HandlePlayerDeath;
     }
 
+    #region Unlockables
+
+    public bool CanAffordItem(UnlockableType unlockable, int index)
+    {
+        return Money >= unlockablesDatabase.GetUnlockable(unlockable, index).Cost;
+    }
+
+    public bool IsItemUnlocked(UnlockableType unlockable, int index)
+    {
+        return Unlocks[unlockable][index] == 0;
+    }
+
+    public bool IsItemEquipped(UnlockableType unlockable, int index)
+    {
+        return Unlocks[unlockable][index] > 0;
+    }
+
+    public UnlockableData GetEquippedItemData(UnlockableType unlockable)
+    {
+        if(Unlocks == null || Unlocks[unlockable] == null)
+            return null;
+        int index = Unlocks[unlockable].FindIndex(status => status == 1);
+        return unlockablesDatabase.GetUnlockable(unlockable, index);
+    }
+
+    public void UnlockItem(UnlockableType unlockable, int index)
+    {
+        Unlocks[unlockable][index] = 0;
+    }
+    
+    private void EquipUnlockable(UnlockableType unlockable, int index)
+    {
+        List<int> unlockablesStatus = Unlocks[unlockable];
+        if (unlockablesStatus == null) return;
+        
+        for(int i = 0; i < unlockablesStatus.Count; i++)
+        {
+            if(unlockablesStatus[i] == 1) // If the item is unlocked
+            {
+                Unlocks[unlockable][i] = 0;
+            }else if (i == index)
+            {
+                Unlocks[unlockable][i] = 1;
+            }
+        }
+    }
+
     private void ToggleSelectEquation(EquationType equationType)
     {
         if(SelectedEquations.Contains(equationType))
@@ -53,7 +103,11 @@ public class PlayerManager : MonoBehaviour
         }
         Save();
     }
+    
+    #endregion
 
+    #region Stats
+    
     public void SetEquationHighScore(EquationType equationType, int score)
     {
         EquationHighScores[equationType] = score;
@@ -80,6 +134,8 @@ public class PlayerManager : MonoBehaviour
         Money = money;
         Save();
     }
+    
+    #endregion
     
     public void HandlePlayerDeath(Dictionary<EquationType, int> equationScores, int moneyGained)
     {

@@ -1360,7 +1360,6 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 724901957}
-  - {fileID: 1367540082}
   - {fileID: 1181340893}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1423,6 +1422,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   equationsDatabase: {fileID: 11400000, guid: 1082533ab3193e24f8fc30e640a586d5, type: 2}
+  unlockablesDatabase: {fileID: 11400000, guid: cfab821fa130e544ea44d67a020d576a, type: 2}
   playerController: {fileID: 1868752991}
 --- !u!1 &1254582809
 GameObject:
@@ -1709,12 +1709,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1367540081}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1163605386}
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1367540083
 MonoBehaviour:
@@ -1920,6 +1920,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1536654520}
   - component: {fileID: 1536654521}
+  - component: {fileID: 1536654522}
   m_Layer: 0
   m_Name: Background
   m_TagString: Untagged
@@ -1997,6 +1998,20 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!114 &1536654522
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1536654519}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 822510e6e47b4c30b0bfd4275d4b7de7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  type: 1
+  spriteRenderer: {fileID: 1536654521}
 --- !u!1 &1612522569
 GameObject:
   m_ObjectHideFlags: 0
@@ -2477,3 +2492,4 @@ SceneRoots:
   - {fileID: 1116337250}
   - {fileID: 1163605386}
   - {fileID: 1342786086}
+  - {fileID: 1367540082}

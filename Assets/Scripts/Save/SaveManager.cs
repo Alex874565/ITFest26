@@ -24,6 +24,24 @@ public class SaveManager : MonoBehaviour
         { EquationType.Division, SaveData.EquationHighScores[3] }
     };
 
+    public Dictionary<UnlockableType, List<CosmeticState>> Unlocks
+    {
+        get
+        {
+            Dictionary<UnlockableType, List<CosmeticState>> unlocks = new Dictionary<UnlockableType, List<CosmeticState>>();
+            for(int i = 0; i < SaveData.Unlocks.Count; i++)
+            {
+                List<CosmeticState> states = new List<CosmeticState>();
+                foreach (int state in SaveData.Unlocks[i])
+                {
+                    states.Add((CosmeticState)state);
+                }
+                unlocks.Add((UnlockableType)i, states);
+            }
+            return unlocks;
+        }
+    }
+
     public List<EquationType> SelectedEquations
     {
         get
