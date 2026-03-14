@@ -10,10 +10,10 @@ public class HubUI : MonoBehaviour
     [SerializeField] private MenuStaggerAnimation stagger;
 
     [Header("Operations Buttons")]
-    [SerializeField] private Button additionButton;
-    [SerializeField] private Button subtractionButton;
-    [SerializeField] private Button multiplicationButton;
-    [SerializeField] private Button divisionButton;
+    [SerializeField] private ToggleButton additionButton;
+    [SerializeField] private ToggleButton subtractionButton;
+    [SerializeField] private ToggleButton multiplicationButton;
+    [SerializeField] private ToggleButton divisionButton;
 
     private void Awake()
     {
@@ -24,10 +24,12 @@ public class HubUI : MonoBehaviour
                 SceneManager.LoadScene("GameScene");
             });
         });
+
         settingsButton.onClick.AddListener(() =>
         {
             ServiceLocator.Instance.UIManager.SettingsUI.Show();
         });
+
         mainMenuButton.onClick.AddListener(() =>
         {
             stagger.CloseMenu(() =>
@@ -35,12 +37,29 @@ public class HubUI : MonoBehaviour
                 SceneManager.LoadScene("MainMenuScene");
             });
         });
+
+        additionButton.OnToggled += CheckPlayButton;
+        subtractionButton.OnToggled += CheckPlayButton;
+        multiplicationButton.OnToggled += CheckPlayButton;
+        divisionButton.OnToggled += CheckPlayButton;
     }
 
     private void Start()
     {
         stagger.OpenMenu();
+        CheckPlayButton();
 
-        //ServiceLocator.Instance.AudioManager.PlayMenuMusic();
+        additionButton.SetState(true);
+    }
+
+    private void CheckPlayButton()
+    {
+        bool anyEnabled =
+            additionButton.IsOn ||
+            subtractionButton.IsOn ||
+            multiplicationButton.IsOn ||
+            divisionButton.IsOn;
+
+        playButton.interactable = anyEnabled;
     }
 }

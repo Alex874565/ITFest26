@@ -8,6 +8,7 @@ public class ServiceLocator : MonoBehaviour
     [field: SerializeField] public UIManager UIManager { get; private set; }
     public GameManager GameManager { get; private set; }
     public AudioManager AudioManager { get; private set; }
+    public PlayerManager PlayerManager { get; private set; }
 
     private void Awake()
     {
@@ -30,6 +31,13 @@ public class ServiceLocator : MonoBehaviour
         if (gameManager)
         {
             GameManager = gameManager;
+        }
+
+        PlayerManager playerManager = FindFirstObjectByType<PlayerManager>();
+
+        if (playerManager)
+        {
+            PlayerManager = playerManager;
         }
     }
 }
