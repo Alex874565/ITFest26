@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
+[Serializable]
 public class SaveData
 {
     public int Money;
@@ -20,6 +22,14 @@ public class SaveData
             else
                 SelectedEquations.Add(false);
         }
+    }
+    
+    public SaveData()
+    {
+        Money = 0;
+        EquationLevels = new List<int> { 0, 0, 0, 0 };
+        EquationHighScores = new List<int> { 0, 0, 0, 0 };
+        SelectedEquations = new List<bool> { false, false, false, false };
     }
 
     public SaveData(SaveData saveData)

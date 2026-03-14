@@ -6,8 +6,10 @@ using System.Collections.Generic;
 public class EnemyController : MonoBehaviour, IReachPlayer, IDisappear
 {
     [SerializeField] private EquationsCategoriesDatabase equationsCategoriesDatabase;
+    [SerializeField] private EnemySpawner enemySpawner;
     
     public event Action<EquationType> OnDisappear;
+    public event Action OnAttackFinished;
 
     private EnemyFactory _factory;
     
@@ -22,15 +24,25 @@ public class EnemyController : MonoBehaviour, IReachPlayer, IDisappear
     {
         _visualController = GetComponent<EnemyVisualController>();
         _movementController = GetComponent<EnemyMovementController>();
-        _movementController.OnFlip += _visualController.Flip;
+    }
+
+    private void OnEnable()
+    {
+        if(_movementController != null)
+            _movementController.OnFlip += _visualController.Flip;
+    }
+
+    private void OnDisable()
+    {
+        if (_movementController != null)
+            _movementController.OnFlip -= _visualController.Flip;
     }
     
     public void Instantiate(EquationType equationType, EnemyStats stats, PlayerController playerController)
     {
-        _equationData = GetRandomEquationData(equationType);
+        Debug.Log(equationType);
+        _equationType = equationType;
         _movementController.Instantiate(stats, playerController.gameObject.transform.position);
-        ResetValues();
-        OnDisappear += playerController.AddScore;
     }
     
     public bool CanDisappear(int answer)
@@ -44,6 +56,7 @@ public class EnemyController : MonoBehaviour, IReachPlayer, IDisappear
 
     public void Disappear()
     {
+        Debug.Log(_equationData.Type);
         OnDisappear?.Invoke(_equationData.Type);
         _factory.ReturnToPool(this);
     }
@@ -51,6 +64,12 @@ public class EnemyController : MonoBehaviour, IReachPlayer, IDisappear
     public void ReachPlayer()
     {
         _movementController.ReachPlayer();
+        FinishAttack();
+    }
+
+    public void FinishAttack()
+    {
+        OnAttackFinished?.Invoke();
     }
 
     public void SetFactory(EnemyFactory factory)
@@ -60,6 +79,7 @@ public class EnemyController : MonoBehaviour, IReachPlayer, IDisappear
     
     public void ResetValues()
     {
+        _equationData = GetRandomEquationData(_equationType);
         _movementController.ResetValues();
         _visualController.ResetValues(_equationData);
     }
@@ -71,5 +91,19 @@ public class EnemyController : MonoBehaviour, IReachPlayer, IDisappear
         List<EquationData> equationDatas = equationCategoryData.Equations;
         int index = UnityEngine.Random.Range(0, equationDatas.Count);
         return equationDatas[index];
+    }
+    
+    public int CountEnemiesSolvedBy(int number)
+    {
+        if (enemySpawner == null) return 0;
+
+        int count = 0;
+        for (int i = 0; i < enemySpawner.ActiveEnemies.Count; i++)
+        {
+            if (enemySpawner.ActiveEnemies[i].CanDisappear(number))
+                count++;
+        }
+
+        return count;
     }
 }

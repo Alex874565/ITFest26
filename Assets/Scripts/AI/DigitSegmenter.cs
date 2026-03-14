@@ -13,6 +13,10 @@ public class DigitSegmenter : MonoBehaviour
     [SerializeField] private int minHeight = 6;
     [SerializeField] private float minFillRatio = 0.02f;
 
+    [Header("Gap Tolerance")]
+    [SerializeField] private int maxHorizontalGap = 1;
+    [SerializeField] private int maxVerticalGap = 3;
+
     [Header("MNIST / EMNIST Formatting")]
     [SerializeField] private int outputSize = 28;
     [SerializeField] private int fittedDigitSize = 20;
@@ -89,14 +93,7 @@ public class DigitSegmenter : MonoBehaviour
                     if (py < minY) minY = py;
                     if (py > maxY) maxY = py;
 
-                    TryVisit(px - 1, py);
-                    TryVisit(px + 1, py);
-                    TryVisit(px, py - 1);
-                    TryVisit(px, py + 1);
-                    TryVisit(px - 1, py - 1);
-                    TryVisit(px + 1, py - 1);
-                    TryVisit(px - 1, py + 1);
-                    TryVisit(px + 1, py + 1);
+                    VisitNeighborsWithGapTolerance(px, py);
                 }
 
                 int blobWidth = maxX - minX + 1;
@@ -122,17 +119,29 @@ public class DigitSegmenter : MonoBehaviour
                     mnistPixels = mnist
                 });
 
-                void TryVisit(int nx, int ny)
+                void VisitNeighborsWithGapTolerance(int cx, int cy)
                 {
-                    if ((uint)nx >= (uint)width || (uint)ny >= (uint)height)
-                        return;
+                    for (int dy = -maxVerticalGap; dy <= maxVerticalGap; dy++)
+                    {
+                        for (int dx = -maxHorizontalGap; dx <= maxHorizontalGap; dx++)
+                        {
+                            if (dx == 0 && dy == 0)
+                                continue;
 
-                    int nIdx = ny * width + nx;
-                    if (_visited[nIdx] || !_foreground[nIdx])
-                        return;
+                            int nx = cx + dx;
+                            int ny = cy + dy;
 
-                    _visited[nIdx] = true;
-                    _queue[tail++] = nIdx;
+                            if ((uint)nx >= (uint)width || (uint)ny >= (uint)height)
+                                continue;
+
+                            int nIdx = ny * width + nx;
+                            if (_visited[nIdx] || !_foreground[nIdx])
+                                continue;
+
+                            _visited[nIdx] = true;
+                            _queue[tail++] = nIdx;
+                        }
+                    }
                 }
             }
         }

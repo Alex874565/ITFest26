@@ -23,12 +23,12 @@ public class EnemySpawner : MonoBehaviour
     private void Awake()
     {
         _boxCollider2D = GetComponent<BoxCollider2D>();
-        _allowedTypes = SaveManager.Instance.SelectedEquations;
     }
 
     private void Start()
     {
         _spawnTimer = GetCurrentSpawnTime();
+        _allowedTypes = SaveManager.Instance.SelectedEquations;
     }
 
     private void Update()

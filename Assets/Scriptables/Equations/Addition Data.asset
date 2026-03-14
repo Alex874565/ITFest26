@@ -13,14 +13,14 @@ MonoBehaviour:
   m_Name: Addition Data
   m_EditorClassIdentifier: 
   <Type>k__BackingField: 0
-  <AchievmentThresholds>k__BackingField: 0a00000064000000fa000000f4010000
+  <AchievmentThresholds>k__BackingField: 0a000000140000001e00000028000000
   <Equations>k__BackingField:
   - Type: 0
-    <Equation>k__BackingField: 1 * 1
-    <Answer>k__BackingField: 1
+    <Equation>k__BackingField: 1 + 1
+    <Answer>k__BackingField: 2
   - Type: 0
-    <Equation>k__BackingField: 3 * 11
-    <Answer>k__BackingField: 33
+    <Equation>k__BackingField: 7 + 81
+    <Answer>k__BackingField: 88
   - Type: 0
-    <Equation>k__BackingField: 10 * 11
+    <Equation>k__BackingField: 50 + 60
     <Answer>k__BackingField: 110

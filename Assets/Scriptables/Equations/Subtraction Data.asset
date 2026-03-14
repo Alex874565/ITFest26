@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Subtraction Data
   m_EditorClassIdentifier: 
   <Type>k__BackingField: 1
-  <AchievmentThresholds>k__BackingField: 0a00000064000000fa000000f4010000
+  <AchievmentThresholds>k__BackingField: 0a000000140000001e00000028000000
   <Equations>k__BackingField:
   - Type: 1
     <Equation>k__BackingField: 5 - 1

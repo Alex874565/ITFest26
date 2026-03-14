@@ -4,6 +4,8 @@ using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
+    [SerializeField] private PlayerController _playerController;
+    [SerializeField] private InputManager _inputManager;
     private static GameManager _instance;
     
     public bool IsPaused { get; private set; }
@@ -19,10 +21,22 @@ public class GameManager : MonoBehaviour
         _instance = this;
         DontDestroyOnLoad(gameObject);
     }
-
+    
     private void Start()
     {
-        IsPaused = false;
+        ResumeGame();
+    }
+    
+    private void OnEnable()
+    {
+        _inputManager.OnEscapeAction += InputManager_OnEscapeAction;
+        _playerController.OnDeath += PauseGame;
+    }
+
+    private void OnDisable()
+    {
+        _inputManager.OnEscapeAction -= InputManager_OnEscapeAction;
+        _playerController.OnDeath -= PauseGame;
     }
 
     private void OnDestroy()

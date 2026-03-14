@@ -1,0 +1,57 @@
+﻿using System.Collections.Generic;
+using UnityEngine;
+
+public class EndGameUI : MonoBehaviour
+{
+    [SerializeField] private EquationsCategoriesDatabase equationsDatabase;
+    [SerializeField] private Transform barsParent;
+    [SerializeField] private EquationProgressBarUI barPrefab;
+    [SerializeField] private PlayerManager playerManager;
+
+    private readonly List<EquationProgressBarUI> spawnedBars = new();
+
+    private void Awake()
+    {
+        gameObject.SetActive(false);
+        playerManager.OnEndGameScoresCalculated += Show;
+    }
+
+    private void OnDestroy()
+    {
+        playerManager.OnEndGameScoresCalculated -= Show;
+    }
+    
+    public void Show(
+        Dictionary<EquationType, int> previousScores,
+        Dictionary<EquationType, int> newScores)
+    {
+        gameObject.SetActive(true);
+        ClearBars();
+
+        foreach (var pair in newScores)
+        {
+            EquationType type = pair.Key;
+            int newScore = pair.Value;
+            int previousScore = previousScores.TryGetValue(type, out int oldValue) ? oldValue : 0;
+
+            EquationCategoryData categoryData = equationsDatabase.GetEquationCategoryData(type);
+            if (categoryData == null)
+                continue;
+
+            EquationProgressBarUI bar = Instantiate(barPrefab, barsParent);
+            bar.Setup(type, previousScore, newScore, categoryData.AchievmentThresholds);
+            spawnedBars.Add(bar);
+        }
+    }
+
+    private void ClearBars()
+    {
+        for (int i = 0; i < spawnedBars.Count; i++)
+        {
+            if (spawnedBars[i] != null)
+                Destroy(spawnedBars[i].gameObject);
+        }
+
+        spawnedBars.Clear();
+    }
+}
