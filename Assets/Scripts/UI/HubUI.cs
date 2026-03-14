@@ -6,7 +6,7 @@ public class HubUI : MonoBehaviour
 {
     [SerializeField] private Button playButton;
     [SerializeField] private Button settingsButton;
-    [SerializeField] private Button mainMenuButton;
+    [SerializeField] private Button shopButton;
     [SerializeField] private MenuStaggerAnimation stagger;
 
     [Header("Operations Buttons")]
@@ -29,14 +29,11 @@ public class HubUI : MonoBehaviour
         {
             ServiceLocator.Instance.UIManager.SettingsUI.Show();
         });
-
-        mainMenuButton.onClick.AddListener(() =>
+        shopButton.onClick.AddListener(() =>
         {
-            stagger.CloseMenu(() =>
-            {     
-                SceneManager.LoadScene("MainMenuScene");
-            });
+            ServiceLocator.Instance.UIManager.ShopUI.Show();
         });
+
 
         additionButton.OnToggled += CheckPlayButton;
         subtractionButton.OnToggled += CheckPlayButton;

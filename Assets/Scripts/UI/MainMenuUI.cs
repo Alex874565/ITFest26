@@ -5,8 +5,8 @@ using UnityEngine.UI;
 public class MainMenuUI : MonoBehaviour
 {
     [SerializeField] private Button playButton;
-    [SerializeField] private Button settingsButton;
-    [SerializeField] private Button shopButton;
+    //[SerializeField] private Button settingsButton;
+    //[SerializeField] private Button shopButton;
     [SerializeField] private MenuStaggerAnimation stagger;
 
     private void Awake()
@@ -18,14 +18,10 @@ public class MainMenuUI : MonoBehaviour
                 SceneManager.LoadScene("HubScene");
             });
         });
-        settingsButton.onClick.AddListener(() =>
-        {
-            ServiceLocator.Instance.UIManager.SettingsUI.Show();
-        });
-        shopButton.onClick.AddListener(() =>
-        {
-            ServiceLocator.Instance.UIManager.ShopUI.Show();
-        });
+        // settingsButton.onClick.AddListener(() =>
+        // {
+        //     ServiceLocator.Instance.UIManager.SettingsUI.Show();
+        // });
     }
 
     private void Start()
