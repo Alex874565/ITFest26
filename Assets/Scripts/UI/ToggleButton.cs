@@ -23,6 +23,7 @@ public class ToggleButton : MonoBehaviour
 
     private void Start()
     {
+        // Sync with current player selection every time the scene reloads
         IsOn = ServiceLocator.Instance.PlayerManager.SelectedEquations.Contains(equationType);
         UpdateVisual();
     }
@@ -53,5 +54,11 @@ public class ToggleButton : MonoBehaviour
 
         seq.Append(targetImage.DOFade(1f, 0.12f));
         seq.Join(targetImage.transform.DOScale(1f, 0.12f));
+    }
+
+    public void RefreshState()
+    {
+        IsOn = ServiceLocator.Instance.PlayerManager.SelectedEquations.Contains(equationType);
+        UpdateVisual();
     }
 }

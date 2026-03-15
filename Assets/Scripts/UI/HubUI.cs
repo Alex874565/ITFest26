@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -34,20 +35,30 @@ public class HubUI : MonoBehaviour
             ServiceLocator.Instance.UIManager.ShopUI.Show();
         });
 
-
+        // Subscribe toggle events
         additionButton.OnToggled += CheckPlayButton;
         subtractionButton.OnToggled += CheckPlayButton;
         multiplicationButton.OnToggled += CheckPlayButton;
         divisionButton.OnToggled += CheckPlayButton;
     }
 
-    private void Start()
+    private IEnumerator Start()
     {
+        // Let ToggleButtons initialize first
+        yield return null;
+
         stagger.OpenMenu();
+
+        additionButton.RefreshState();
+        subtractionButton.RefreshState();
+        multiplicationButton.RefreshState();
+        divisionButton.RefreshState();
+
         CheckPlayButton();
 
         ServiceLocator.Instance.AudioManager.PlayMenuMusic();
     }
+    
 
     private void CheckPlayButton()
     {
