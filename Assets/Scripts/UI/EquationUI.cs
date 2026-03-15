@@ -24,6 +24,9 @@ public class EquationUI : MonoBehaviour
                 fill.fillAmount = Mathf.Clamp(equationScore / (float)categoryData.AchievmentThresholds[equationLevel], 0, 1);
                 score.text = equationScore + " / " + categoryData.AchievmentThresholds[equationLevel];
                 level.text = (equationLevel + 1).ToString();
+                Debug.Log(equationScore);
+                Debug.Log(categoryData.AchievmentThresholds[equationLevel]);
+                Debug.Log(fill.fillAmount);
             }
             else
             {
