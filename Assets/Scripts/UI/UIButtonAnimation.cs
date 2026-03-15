@@ -22,6 +22,7 @@ public class UIButtonAnimation : MonoBehaviour,
     private void Awake()
     {
         button = GetComponent<Button>();
+        originalScale = transform.localScale;
     }
 
     public void SetBaseScale(Vector3 scale)
@@ -39,7 +40,8 @@ public class UIButtonAnimation : MonoBehaviour,
         currentTween?.Kill();
 
         currentTween = transform.DOScale(originalScale * hoverMultiplier, duration)
-            .SetEase(Ease.OutBack);
+            .SetEase(Ease.OutBack)
+            .SetUpdate(true);
     }
 
     public void OnPointerExit(PointerEventData eventData)
@@ -49,7 +51,8 @@ public class UIButtonAnimation : MonoBehaviour,
         currentTween?.Kill();
 
         currentTween = transform.DOScale(originalScale, duration)
-            .SetEase(Ease.OutCubic);
+            .SetEase(Ease.OutCubic)
+            .SetUpdate(true);
     }
 
     public void OnPointerDown(PointerEventData eventData)
@@ -60,7 +63,8 @@ public class UIButtonAnimation : MonoBehaviour,
         currentTween?.Kill();
 
         currentTween = transform.DOScale(originalScale * pressMultiplier, duration * 0.6f)
-            .SetEase(Ease.OutQuad);
+            .SetEase(Ease.OutQuad)
+            .SetUpdate(true);
     }
 
     public void OnPointerUp(PointerEventData eventData)
@@ -73,7 +77,8 @@ public class UIButtonAnimation : MonoBehaviour,
         float targetMultiplier = isHovered ? hoverMultiplier : 1f;
 
         currentTween = transform.DOScale(originalScale * targetMultiplier, duration)
-            .SetEase(Ease.OutBack);
+            .SetEase(Ease.OutBack)
+            .SetUpdate(true);
     }
 
     private void OnDisable()
