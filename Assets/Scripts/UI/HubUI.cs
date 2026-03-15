@@ -45,6 +45,8 @@ public class HubUI : MonoBehaviour
     {
         stagger.OpenMenu();
         CheckPlayButton();
+
+        ServiceLocator.Instance.AudioManager.PlayMenuMusic();
     }
 
     private void CheckPlayButton()
