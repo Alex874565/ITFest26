@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 7074542593927949659}
   - component: {fileID: 4777387517125321370}
   - component: {fileID: 1448645416334680185}
+  - component: {fileID: 854170969503085380}
   m_Layer: 5
   m_Name: CloseButton
   m_TagString: Untagged
@@ -52,7 +53,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   hoverMultiplier: 1.08
+  pressMultiplier: 0.9
   duration: 0.2
+  originalScale: {x: 1, y: 1, z: 1}
 --- !u!222 &7074542593927949659
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -135,3 +138,16 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &854170969503085380
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6719703421234799715}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aec468cfb11ad7241993538cb133469b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  clickSound: {fileID: 8300000, guid: 711e478975f942f4681087bb0044ba74, type: 3}

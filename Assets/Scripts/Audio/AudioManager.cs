@@ -109,12 +109,16 @@ public class AudioManager : MonoBehaviour
     {
         musicVolume = value;
         PlayerPrefs.SetFloat("MusicVolume", musicVolume);
+
+        musicSourceA.volume = musicVolume * masterVolume;
+        musicSourceB.volume = musicVolume * masterVolume;
     }
 
     public void SetSFXVolume(float value)
     {
         sfxVolume = value;
         PlayerPrefs.SetFloat("SFXVolume", sfxVolume);
+
         SfxSource.volume = sfxVolume * masterVolume;
     }
 
@@ -122,6 +126,9 @@ public class AudioManager : MonoBehaviour
     {
         masterVolume = value;
         PlayerPrefs.SetFloat("MasterVolume", masterVolume);
+
+        musicSourceA.volume = musicVolume * masterVolume;
+        musicSourceB.volume = musicVolume * masterVolume;
         SfxSource.volume = sfxVolume * masterVolume;
     }
 
