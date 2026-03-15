@@ -1,6 +1,7 @@
 ﻿using TMPro;
 using UnityEngine;
 using DG.Tweening;
+using UnityEngine.UI;
 
 public class HudUI : MonoBehaviour
 {
@@ -22,11 +23,17 @@ public class HudUI : MonoBehaviour
     [SerializeField] private float textPunch = 0.25f;
     [SerializeField] private float textDuration = 0.30f;
 
+    [SerializeField] private Button pauseButton;
+
     private float coinStartY;
 
     private void Awake()
     {
         coinStartY = coinIcon.anchoredPosition.y;
+        pauseButton.onClick.AddListener(() =>
+        {
+            ServiceLocator.Instance.GameManager.InputManager_OnEscapeAction(this, System.EventArgs.Empty);
+        });
     }
 
     private void OnEnable()
