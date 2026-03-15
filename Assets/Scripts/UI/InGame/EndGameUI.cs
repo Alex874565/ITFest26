@@ -18,7 +18,7 @@ public class EndGameUI : MonoBehaviour
     [SerializeField] private Button hubButton;
     [SerializeField] private Button retryButton;
 
-    [SerializeField] private MenuStaggerAnimation stagger;
+    //[SerializeField] private MenuStaggerAnimation stagger;
 
     
     
@@ -35,17 +35,19 @@ public class EndGameUI : MonoBehaviour
         });
         hubButton.onClick.AddListener( () =>
         {
-            stagger.CloseMenu(() =>
-            {
-                SceneManager.LoadScene("HubScene");
-            });
+            // stagger.CloseMenu(() =>
+            // {
+            //     SceneManager.LoadScene("HubScene");
+            // });
+            SceneManager.LoadScene("HubScene");
         });
         retryButton.onClick.AddListener( () =>
         {
-            stagger.CloseMenu(() =>
-            {
-                Retry();
-            });
+            // stagger.CloseMenu(() =>
+            // {
+            //     Retry();
+            // });
+            Retry();
         });
     }
 
@@ -110,9 +112,10 @@ public class EndGameUI : MonoBehaviour
 
     public void Hide()
     {
-        stagger.CloseMenu(() =>
-        {
-            gameObject.SetActive(false);
-        });
+        // stagger.CloseMenu(() =>
+        // {
+        //     gameObject.SetActive(false);
+        // });
+        gameObject.SetActive(false);
     }
 }
