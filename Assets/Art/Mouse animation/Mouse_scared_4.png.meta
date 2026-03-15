@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 1b89483f8eea97549b04799125ad549b
+guid: 7ff2da24a165e5d48aa7d1220809d6a0
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -1836120431684336037
-    second: Hat_0
+      213: 865954000317988192
+    second: Mouse_scared_4_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -126,13 +126,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Hat_0
+      name: Mouse_scared_4_0
       rect:
         serializedVersion: 2
-        x: 340
-        y: 402
-        width: 1431
-        height: 1535
+        x: 407
+        y: 403
+        width: 1290
+        height: 1399
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -141,8 +141,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: b564e90123ac486e0800000000000000
-      internalID: -1836120431684336037
+      spriteID: 06d38c4439c740c00800000000000000
+      internalID: 865954000317988192
       vertices: []
       indices: 
       edges: []
@@ -161,7 +161,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Hat_0: -1836120431684336037
+      Mouse_scared_4_0: 865954000317988192
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

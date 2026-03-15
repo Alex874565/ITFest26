@@ -1,22 +1,24 @@
 ﻿using UnityEngine;
-using UnityEngine.UI;
 using DG.Tweening;
+using TMPro;
 
 public class DrawTutorialOverlay : MonoBehaviour
 {
-    [Header("References")]
-    [SerializeField] private Image guideImage;
+    [Header("Guide Text")]
+    [SerializeField] private TMP_Text guideText;
     [SerializeField] private CanvasGroup guideCanvasGroup;
+    [SerializeField] private string tutorialNumber = "2";
+    [SerializeField] private float guideAlpha = 0.22f;
 
+    [Header("Hand")]
     [SerializeField] private RectTransform handImage;
     [SerializeField] private CanvasGroup handCanvasGroup;
+    [SerializeField] private float handAlpha = 0.95f;
 
     [Header("Path")]
     [SerializeField] private RectTransform[] pathPoints;
 
     [Header("Animation")]
-    [SerializeField] private float guideAlpha = 0.22f;
-    [SerializeField] private float handAlpha = 0.95f;
     [SerializeField] private float moveDuration = 1.4f;
     [SerializeField] private float startDelay = 0.2f;
     [SerializeField] private float loopDelay = 0.35f;
@@ -31,12 +33,16 @@ public class DrawTutorialOverlay : MonoBehaviour
 
     private void Awake()
     {
-        if (ServiceLocator.Instance != null && ServiceLocator.Instance.InputManager != null)
-        {
-            ServiceLocator.Instance.InputManager.OnPressStarted += HandlePressStarted;
-        }
 
         PrepareVisualState();
+        ApplyText();
+    }
+
+    private void Start()
+    {
+        
+        if (ServiceLocator.Instance != null && ServiceLocator.Instance.InputManager != null)
+            ServiceLocator.Instance.InputManager.OnPressStarted += HandlePressStarted;
     }
 
     private void OnEnable()
@@ -55,9 +61,24 @@ public class DrawTutorialOverlay : MonoBehaviour
         KillSequence();
 
         if (ServiceLocator.Instance != null && ServiceLocator.Instance.InputManager != null)
-        {
             ServiceLocator.Instance.InputManager.OnPressStarted -= HandlePressStarted;
-        }
+    }
+
+    public void SetNumber(string value)
+    {
+        tutorialNumber = value;
+        ApplyText();
+    }
+
+    public void SetPath(RectTransform[] newPath)
+    {
+        pathPoints = newPath;
+    }
+
+    public void ResetTutorial()
+    {
+        _hiddenPermanently = false;
+        ShowAndPlay();
     }
 
     public void ShowAndPlay()
@@ -70,9 +91,10 @@ public class DrawTutorialOverlay : MonoBehaviour
     public void ShowInstant()
     {
         KillSequence();
+        ApplyText();
 
-        if (guideImage != null)
-            guideImage.gameObject.SetActive(true);
+        if (guideText != null)
+            guideText.gameObject.SetActive(true);
 
         if (guideCanvasGroup != null)
         {
@@ -154,32 +176,12 @@ public class DrawTutorialOverlay : MonoBehaviour
 
         hideSequence.OnComplete(() =>
         {
-            if (guideImage != null)
-                guideImage.gameObject.SetActive(false);
+            if (guideText != null)
+                guideText.gameObject.SetActive(false);
 
             if (handImage != null)
                 handImage.gameObject.SetActive(false);
         });
-    }
-
-    public void SetGuideSprite(Sprite sprite)
-    {
-        if (guideImage == null)
-            return;
-
-        guideImage.sprite = sprite;
-        guideImage.preserveAspect = true;
-    }
-
-    public void SetPath(RectTransform[] newPath)
-    {
-        pathPoints = newPath;
-    }
-
-    public void ResetTutorial()
-    {
-        _hiddenPermanently = false;
-        ShowAndPlay();
     }
 
     private void HandlePressStarted()
@@ -188,6 +190,14 @@ public class DrawTutorialOverlay : MonoBehaviour
             return;
 
         Hide(true);
+    }
+
+    private void ApplyText()
+    {
+        if (guideText == null)
+            return;
+
+        guideText.text = tutorialNumber;
     }
 
     private void PrepareVisualState()

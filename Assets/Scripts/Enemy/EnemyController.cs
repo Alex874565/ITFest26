@@ -46,7 +46,6 @@ public class EnemyController : MonoBehaviour, IReachPlayer, IDisappear
     
     public void Instantiate(EquationType equationType, EnemyStats stats, PlayerController playerController)
     {
-        Debug.Log(equationType);
         EquationType = equationType;
         _movementController.Instantiate(stats, playerController.gameObject.transform.position);
         GetDifficultyLevel = playerController.GetDifficultyLevel;
@@ -63,7 +62,6 @@ public class EnemyController : MonoBehaviour, IReachPlayer, IDisappear
 
     public void Disappear()
     {
-        Debug.Log(_equationData.Type);
         OnDisappear?.Invoke(_equationData.Type);
         _factory.ReturnToPool(this);
     }

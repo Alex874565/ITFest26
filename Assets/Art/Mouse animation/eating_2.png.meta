@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 1b89483f8eea97549b04799125ad549b
+guid: 3d8955e7651776a4fb85adda9105eb00
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -1836120431684336037
-    second: Hat_0
+      213: -2733912378700998634
+    second: eating_2_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -126,13 +126,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Hat_0
+      name: eating_2_0
       rect:
         serializedVersion: 2
-        x: 340
-        y: 402
-        width: 1431
-        height: 1535
+        x: 421
+        y: 403
+        width: 1258
+        height: 1345
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -141,8 +141,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: b564e90123ac486e0800000000000000
-      internalID: -1836120431684336037
+      spriteID: 618db7c2d213f0ad0800000000000000
+      internalID: -2733912378700998634
       vertices: []
       indices: 
       edges: []
@@ -161,7 +161,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Hat_0: -1836120431684336037
+      eating_2_0: -2733912378700998634
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

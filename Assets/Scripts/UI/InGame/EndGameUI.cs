@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class EndGameUI : MonoBehaviour
 {
@@ -59,5 +60,22 @@ public class EndGameUI : MonoBehaviour
         }
 
         spawnedBars.Clear();
+    }
+
+    public void BackToHub()
+    {
+        Time.timeScale = 1;
+        SceneManager.LoadScene("HubScene");
+    }
+    
+    public void Retry()
+    {
+        Time.timeScale = 1;
+        SceneManager.LoadScene("Game");
+    }
+    
+    public void OpenSettings()
+    {
+        ServiceLocator.Instance.UIManager.SettingsUI.Show();
     }
 }

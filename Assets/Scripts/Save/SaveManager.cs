@@ -77,7 +77,6 @@ public class SaveManager : MonoBehaviour
 
         if (File.Exists(path))
         {
-            Debug.Log("Save loaded");
             string json = File.ReadAllText(path);
             SaveData = JsonUtility.FromJson<SaveData>(json);
         }
@@ -89,7 +88,6 @@ public class SaveManager : MonoBehaviour
 
     public void Save(SaveData saveData)
     {
-        Debug.Log("Saving...");
         foreach (var eq in SaveData.SelectedEquations)
         {
             Debug.Log(eq);

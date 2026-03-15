@@ -309,7 +309,7 @@ public class Drawer : MonoBehaviour
         {
             tmpText.color = isCorrect ? Color.white : targetTint;
             tmpText.fontStyle = FontStyles.Bold;
-            tmpText.enableWordWrapping = false;
+            tmpText.textWrappingMode = TextWrappingModes.NoWrap;
 
             originalTmpMaterial = tmpText.fontMaterial;
             runtimeTmpMaterial = new Material(originalTmpMaterial);
