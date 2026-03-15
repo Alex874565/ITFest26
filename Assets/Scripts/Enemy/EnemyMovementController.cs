@@ -87,4 +87,9 @@ public class EnemyMovementController : MonoBehaviour
 
         _rb.linearVelocity = Vector2.zero;
     }
+
+    public void Stop()
+    {
+        _rb.linearVelocity = Vector2.zero;
+    }
 }

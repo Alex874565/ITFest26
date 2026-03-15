@@ -18,7 +18,7 @@ public class NumberRecognitionController : MonoBehaviour
 
     [SerializeField] private DigitSegmenter segmenter;
     [SerializeField] private MnistRecognizer recognizer;
-
+    
     [Header("Performance")]
     [SerializeField] private bool skipIfBusy = true;
     [SerializeField] private int maxWholeNumberCandidates = 16;
