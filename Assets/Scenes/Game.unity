@@ -815,6 +815,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   modelAsset: {fileID: 5022602860645237092, guid: 5c98512c5b9b75e46961308f8bb79151, type: 3}
+  preferGpu: 1
 --- !u!114 &637552861
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -861,16 +862,15 @@ MonoBehaviour:
   recognizedNumberCanvasGroup: {fileID: 1742867226}
   segmenter: {fileID: 637552861}
   recognizer: {fileID: 637552860}
-  debugDigit: {fileID: 0}
-  createDebugTexture: 0
-  onlyShowFirstDebugDigit: 1
   skipIfBusy: 1
-  predictOneEveryNFrames: 1
   maxWholeNumberCandidates: 24
+  segmentationWorkBudgetPerFrame: 20000
+  minRecognitionInterval: 0.05
+  useDownsampledAnalysis: 1
+  maxAnalysisSizeNative: 512
+  maxAnalysisSizeWebGL: 512
   enableAssist: 1
   assistTopKPerDigit: 2
-  assistMaxRelevantDistance: 8
-  confidenceAdvantageToIgnoreDistance: 0.2
 --- !u!1 &670697098
 GameObject:
   m_ObjectHideFlags: 0
@@ -2094,10 +2094,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   timeToEvaluate: 0.5
+  recognitionController: {fileID: 637552863}
   drawSurface: {fileID: 1612522571}
   canvasGroup: {fileID: 1742867226}
-  textureWidth: 1920
-  textureHeight: 1080
+  textureWidth: 1024
+  textureHeight: 512
   brush: {fileID: 1612522574}
   clearColor: {r: 0, g: 0, b: 0, a: 0}
   clearMaskColor: {r: 0, g: 0, b: 0, a: 0}
@@ -2129,7 +2130,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e2da53a23717ec64d846d724b8d1dca8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  brushRadius: 18
+  brushRadius: 9
   spacing: 0.08
   opacity: 1
   hardness: 0.3

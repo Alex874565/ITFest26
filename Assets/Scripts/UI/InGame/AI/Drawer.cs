@@ -7,7 +7,7 @@ using TMPro;
 public class Drawer : MonoBehaviour
 {
     [SerializeField] private float timeToEvaluate;
-
+    [SerializeField] private NumberRecognitionController recognitionController;
     [Header("UI")]
     [SerializeField] private RawImage drawSurface;
     [SerializeField] private CanvasGroup canvasGroup;
@@ -31,8 +31,8 @@ public class Drawer : MonoBehaviour
     [SerializeField] private float popRotationPunch = 8f;
 
     [Header("Recognized Number Colors")]
-    [SerializeField] private Color correctTint = new Color(0.36f, 0.60f, 0.34f, 1f); // warm leaf green
-    [SerializeField] private Color wrongTint = new Color(0.78f, 0.36f, 0.32f, 1f);   // painterly red
+    [SerializeField] private Color correctTint = new Color(0.36f, 0.60f, 0.34f, 1f);
+    [SerializeField] private Color wrongTint = new Color(0.78f, 0.36f, 0.32f, 1f);
 
     [Header("Recognized Number Chalk Look")]
     [SerializeField] private Texture2D chalkNoiseTexture;
@@ -60,6 +60,9 @@ public class Drawer : MonoBehaviour
 
     private Sequence _recognizedNumberSequence;
 
+    private Color32[] _clearVisiblePixels;
+    private Color32[] _clearMaskPixels;
+
     private void Awake()
     {
         ServiceLocator.Instance.InputManager.OnPressStarted += OnPressedStarted;
@@ -77,9 +80,28 @@ public class Drawer : MonoBehaviour
 
         drawSurface.texture = DrawTexture;
 
+        int pixelCount = textureWidth * textureHeight;
+        _clearVisiblePixels = new Color32[pixelCount];
+        _clearMaskPixels = new Color32[pixelCount];
+
+        Color32 visible = clearColor;
+        Color32 mask = clearMaskColor;
+
+        for (int i = 0; i < pixelCount; i++)
+        {
+            _clearVisiblePixels[i] = visible;
+            _clearMaskPixels[i] = mask;
+        }
+
         Clear();
     }
 
+    private void Start()
+    {
+        if (drawSurface != null)
+            drawSurface.canvasRenderer.SetAlpha(1f);
+    }
+    
     private void OnDestroy()
     {
         if (_recognizedNumberSequence != null && _recognizedNumberSequence.IsActive())
@@ -101,9 +123,10 @@ public class Drawer : MonoBehaviour
                 _timeSinceDrawing += Time.deltaTime;
                 if (_timeSinceDrawing > timeToEvaluate)
                 {
-                    OnTimeToEvaluatePassed?.Invoke();
-                    _evaluatedSinceDrawing = true;
-                    Clear();
+                    bool started = recognitionController != null && recognitionController.RecognizeNumber();
+
+                    if (started)
+                        _evaluatedSinceDrawing = true;
                 }
             }
 
@@ -126,20 +149,13 @@ public class Drawer : MonoBehaviour
 
     public void Clear()
     {
-        Color[] visiblePixels = new Color[textureWidth * textureHeight];
-        Color[] maskPixels = new Color[textureWidth * textureHeight];
+        DrawTexture.SetPixels32(_clearVisiblePixels);
+        DrawTexture.Apply(false, false);
 
-        for (int i = 0; i < visiblePixels.Length; i++)
-        {
-            visiblePixels[i] = clearColor;
-            maskPixels[i] = clearMaskColor;
-        }
+        MaskTexture.SetPixels32(_clearMaskPixels);
+        MaskTexture.Apply(false, false);
 
-        DrawTexture.SetPixels(visiblePixels);
-        DrawTexture.Apply();
-
-        MaskTexture.SetPixels(maskPixels);
-        MaskTexture.Apply();
+        _wasDrawingLastFrame = false;
     }
 
     private bool TryGetTexturePixelPosition(Vector2 screenPos, out Vector2 pixelPos)
@@ -172,6 +188,7 @@ public class Drawer : MonoBehaviour
     private void OnPressedStarted()
     {
         _isDrawing = true;
+        _hasLastDrawPosition = false;
     }
 
     private void OnPressedReleased()
@@ -226,7 +243,6 @@ public class Drawer : MonoBehaviour
         localPoint.x = Mathf.Clamp(localPoint.x, parentBounds.xMin + 40f, parentBounds.xMax - 40f);
         localPoint.y = Mathf.Clamp(localPoint.y, parentBounds.yMin + 40f, parentBounds.yMax - 40f);
 
-        // Save original visual state
         Color originalColor = Color.white;
         if (tmpText != null)
             originalColor = tmpText.color;
@@ -266,7 +282,6 @@ public class Drawer : MonoBehaviour
             }
         }
 
-        // If replacing an existing popup, reset it instantly instead of hiding first.
         if (_recognizedNumberSequence != null)
         {
             _recognizedNumberSequence.Kill(false);
@@ -419,7 +434,6 @@ public class Drawer : MonoBehaviour
 
         _recognizedNumberSequence.OnKill(() =>
         {
-            // When interrupted by a new popup, don't hide first.
             RestoreVisualState();
             _recognizedNumberSequence = null;
         });
