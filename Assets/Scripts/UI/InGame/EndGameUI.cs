@@ -2,6 +2,7 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class EndGameUI : MonoBehaviour
 {
@@ -11,6 +12,15 @@ public class EndGameUI : MonoBehaviour
     [SerializeField] private Transform barsParent;
     [SerializeField] private EquationProgressBarUI barPrefab;
     [SerializeField] private TextMeshProUGUI moneyText;
+
+    [Header("Buttons")]
+    [SerializeField] private Button settingsButton;
+    [SerializeField] private Button hubButton;
+    [SerializeField] private Button retryButton;
+
+    [SerializeField] private MenuStaggerAnimation stagger;
+
+    
     
     private readonly List<EquationProgressBarUI> spawnedBars = new();
 
@@ -18,6 +28,25 @@ public class EndGameUI : MonoBehaviour
     {
         gameObject.SetActive(false);
         playerManager.OnEndGameValuesCalculated += Show;
+
+        settingsButton.onClick.AddListener( () =>
+        {
+            ServiceLocator.Instance.UIManager.SettingsUI.Show();
+        });
+        hubButton.onClick.AddListener( () =>
+        {
+            stagger.CloseMenu(() =>
+            {
+                SceneManager.LoadScene("HubScene");
+            });
+        });
+        retryButton.onClick.AddListener( () =>
+        {
+            stagger.CloseMenu(() =>
+            {
+                Retry();
+            });
+        });
     }
 
     private void OnDestroy()
@@ -77,5 +106,13 @@ public class EndGameUI : MonoBehaviour
     public void OpenSettings()
     {
         ServiceLocator.Instance.UIManager.SettingsUI.Show();
+    }
+
+    public void Hide()
+    {
+        stagger.CloseMenu(() =>
+        {
+            gameObject.SetActive(false);
+        });
     }
 }
