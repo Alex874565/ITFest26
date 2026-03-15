@@ -3,10 +3,11 @@ using UnityEngine;
 
 public class AudioManager : MonoBehaviour
 {
-    public static AudioManager Instance { get; private set; } // Add this
-    
+    public static AudioManager Instance { get; private set; }
+
     [Header("Sources")]
-    [SerializeField] private AudioSource musicSource;
+    [SerializeField] private AudioSource musicSourceA;
+    [SerializeField] private AudioSource musicSourceB;
     [field: SerializeField] public AudioSource SfxSource { get; private set; }
 
     [Header("Music Clips")]
@@ -17,21 +18,28 @@ public class AudioManager : MonoBehaviour
     [Range(0f,1f)] [SerializeField] private float masterVolume = 1f;
     [Range(0f,1f)] [SerializeField] private float musicVolume = 1f;
     [Range(0f,1f)] [SerializeField] private float sfxVolume = 1f;
-    
+
     [Header("Pitch Settings")]
     [Range(0.5f, 2f)] [SerializeField] private float pitchVariationRange = 0.1f;
 
+    private AudioSource activeMusicSource;
+    private AudioSource inactiveMusicSource;
     private AudioClip currentMusic;
 
     private void Awake()
     {
-        if(Instance != null && Instance != this)
+        if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
             return;
         }
+
         Instance = this;
         DontDestroyOnLoad(gameObject);
+
+        activeMusicSource = musicSourceA;
+        inactiveMusicSource = musicSourceB;
+
         SetMusicVolume(PlayerPrefs.GetFloat("MusicVolume", .5f));
         SetSFXVolume(PlayerPrefs.GetFloat("SFXVolume", .5f));
         SetMasterVolume(PlayerPrefs.GetFloat("MasterVolume", .5f));
@@ -39,26 +47,31 @@ public class AudioManager : MonoBehaviour
 
     void ApplyVolumes()
     {
-        musicSource.volume = musicVolume * masterVolume;
+        musicSourceA.volume = musicVolume * masterVolume;
+        musicSourceB.volume = 0f;
         SfxSource.volume = sfxVolume * masterVolume;
     }
 
-    // MUSIC SWITCH
-    public void PlayMusic(AudioClip clip)
+    public void PlayMusic(AudioClip clip, float fadeTime = 1.5f)
     {
-        Debug.Log("PLAY MUSIC CALLED");
-        Debug.Log("music clip: " + clip);
-        Debug.Log("current music: " + currentMusic);
         if (clip == null || currentMusic == clip) return;
+
         currentMusic = clip;
 
-        musicSource.DOKill();
-        musicSource.DOFade(0f, 0.5f).SetUpdate(true).OnComplete(() =>
-        {
-            musicSource.clip = clip;
-            musicSource.Play();
-            musicSource.DOFade(musicVolume * masterVolume, 0.5f).SetUpdate(true);
-        });
+        inactiveMusicSource.clip = clip;
+        inactiveMusicSource.volume = 0f;
+        inactiveMusicSource.Play();
+
+        activeMusicSource.DOKill();
+        inactiveMusicSource.DOKill();
+
+        activeMusicSource.DOFade(0f, fadeTime).SetUpdate(true);
+        inactiveMusicSource.DOFade(musicVolume * masterVolume, fadeTime).SetUpdate(true);
+
+        // swap sources
+        var temp = activeMusicSource;
+        activeMusicSource = inactiveMusicSource;
+        inactiveMusicSource = temp;
     }
 
     public void PlayMenuMusic()
@@ -68,37 +81,14 @@ public class AudioManager : MonoBehaviour
 
     public void PlayGameplayMusic()
     {
-        Debug.Log("PLAY GAMEPLAY MUSIC CALLED");
         PlayMusic(gameplayMusic);
     }
 
-    // VOLUME
-    public void SetMusicVolume(float value)
+    public void StopMusic(float fadeDuration = 1f)
     {
-        musicVolume = value;
-        PlayerPrefs.SetFloat("MusicVolume", musicVolume);
-        ApplyVolumes();
+        activeMusicSource.DOFade(0f, fadeDuration).SetUpdate(true)
+            .OnComplete(() => activeMusicSource.Stop());
     }
-
-    public float GetMusicVolume() => musicVolume;
-
-    public void SetSFXVolume(float value)
-    {
-        sfxVolume = value;
-        PlayerPrefs.SetFloat("SFXVolume", sfxVolume);
-        ApplyVolumes();
-    }
-
-    public float GetSFXVolume() => sfxVolume;
-
-    public void SetMasterVolume(float value)
-    {
-        masterVolume = value;
-        PlayerPrefs.SetFloat("MasterVolume", masterVolume);
-        ApplyVolumes();
-    }
-
-    public float GetMasterVolume() => masterVolume;
 
     // SFX
     public void PlayUI(AudioClip clip)
@@ -106,30 +96,36 @@ public class AudioManager : MonoBehaviour
         if (clip == null) return;
         SfxSource.PlayOneShot(clip);
     }
-    
+
     public void PlayUIRandomPitch(AudioClip clip)
     {
         if (clip == null) return;
         SfxSource.pitch = 1f + Random.Range(-pitchVariationRange, pitchVariationRange);
         SfxSource.PlayOneShot(clip);
-        SfxSource.pitch = 1f; // Reset pitch after playing
+        SfxSource.pitch = 1f;
     }
 
-    public void StopMusic(float fadeDuration = 0.5f)
+    public void SetMusicVolume(float value)
     {
-        musicSource.DOKill();
-        // SetUpdate(true) is critical for pausing!
-        musicSource.DOFade(0f, fadeDuration).SetUpdate(true).OnComplete(() =>
-        {
-            musicSource.Stop();
-            musicSource.clip = null;
-            currentMusic = null;
-            musicSource.volume = musicVolume * masterVolume;
-        });
+        musicVolume = value;
+        PlayerPrefs.SetFloat("MusicVolume", musicVolume);
     }
 
-    public AudioSource GetMusicSource()
+    public void SetSFXVolume(float value)
     {
-        return musicSource;
+        sfxVolume = value;
+        PlayerPrefs.SetFloat("SFXVolume", sfxVolume);
+        SfxSource.volume = sfxVolume * masterVolume;
     }
+
+    public void SetMasterVolume(float value)
+    {
+        masterVolume = value;
+        PlayerPrefs.SetFloat("MasterVolume", masterVolume);
+        SfxSource.volume = sfxVolume * masterVolume;
+    }
+
+    public float GetMasterVolume() => masterVolume;
+    public float GetMusicVolume() => musicVolume;
+    public float GetSFXVolume() => sfxVolume;
 }
