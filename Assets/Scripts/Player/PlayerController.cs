@@ -23,17 +23,17 @@ public class PlayerController : MonoBehaviour
     private void Awake()
     {
         _equationScores = new Dictionary<EquationType, int>();
-        SaveManager.Instance.SelectedEquations.ForEach(equationType =>
-        {
-            _equationScores[equationType] = 0;
-            _difficultyLevelsGameData[equationType] = new DifficultyLevelGameData(0, 0, 0);
-        });
     }
 
     private void Start()
     {
         Money = 0;
         OnScoreChanged?.Invoke(Money);
+        SaveManager.Instance.SelectedEquations.ForEach(equationType =>
+        {
+            _equationScores[equationType] = 0;
+            _difficultyLevelsGameData[equationType] = new DifficultyLevelGameData(0, 0, 0);
+        });
     }
 
     private void OnEnable()

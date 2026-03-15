@@ -54,6 +54,14 @@ public class EnemyVisualController : MonoBehaviour
     
     public void ResetValues(EquationData data)
     {
+        StopAllCoroutines();
+
+        _sprite.enabled = true;
+        equationObject.SetActive(true);
+
+        _animator.Rebind();
+        _animator.Update(0f);
+
         _equationData = data;
         equationText.text = _equationData.Equation;
     }
