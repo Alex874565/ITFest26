@@ -324,8 +324,8 @@ MonoBehaviour:
   closeButton: {fileID: 8570565227328010688}
   stagger: {fileID: 4847167563111573908}
   masterSlider: {fileID: 3435752531396425779}
-  musicSlider: {fileID: 0}
-  sfxSlider: {fileID: 0}
+  musicSlider: {fileID: 5458545889852618473}
+  sfxSlider: {fileID: 8157580822444812286}
 --- !u!114 &4847167563111573908
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -341,8 +341,8 @@ MonoBehaviour:
   buttons:
   - {fileID: 99381042308295510}
   - {fileID: 822644878879737130}
-  - {fileID: 0}
-  - {fileID: 0}
+  - {fileID: 4735029120796491627}
+  - {fileID: 8729175238223745147}
   - {fileID: 6756384798289069735}
   duration: 0.4
   staggerDelay: 0.08
@@ -933,6 +933,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 6273324406036270508, guid: 482239d4e255527488bff4467f296393, type: 3}
   m_PrefabInstance: {fileID: 5381414397351188678}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &8157580822444812286 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4295048008822095672, guid: 482239d4e255527488bff4467f296393, type: 3}
+  m_PrefabInstance: {fileID: 5381414397351188678}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 67db9e8f0e2ae9c40bc1e2b64352a6b4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &6658859002894565106
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1071,19 +1082,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4551411700297735966, guid: d79f0dd159960ce45b4ecf3c076d0b7a, type: 3}
       propertyPath: m_AnchorMax.x
-      value: 1
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 4551411700297735966, guid: d79f0dd159960ce45b4ecf3c076d0b7a, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4551411700297735966, guid: d79f0dd159960ce45b4ecf3c076d0b7a, type: 3}
       propertyPath: m_AnchorMin.x
-      value: 1
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 4551411700297735966, guid: d79f0dd159960ce45b4ecf3c076d0b7a, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4551411700297735966, guid: d79f0dd159960ce45b4ecf3c076d0b7a, type: 3}
       propertyPath: m_SizeDelta.x
@@ -1123,11 +1134,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4551411700297735966, guid: d79f0dd159960ce45b4ecf3c076d0b7a, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -84
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4551411700297735966, guid: d79f0dd159960ce45b4ecf3c076d0b7a, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -75
+      value: 90
       objectReference: {fileID: 0}
     - target: {fileID: 4551411700297735966, guid: d79f0dd159960ce45b4ecf3c076d0b7a, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -1422,3 +1433,14 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 6273324406036270508, guid: 482239d4e255527488bff4467f296393, type: 3}
   m_PrefabInstance: {fileID: 8096264834464844241}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &5458545889852618473 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4295048008822095672, guid: 482239d4e255527488bff4467f296393, type: 3}
+  m_PrefabInstance: {fileID: 8096264834464844241}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 67db9e8f0e2ae9c40bc1e2b64352a6b4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
