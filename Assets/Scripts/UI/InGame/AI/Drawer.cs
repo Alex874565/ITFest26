@@ -42,7 +42,11 @@ public class Drawer : MonoBehaviour
     [SerializeField] private float chalkUnderlaySoftness = 0.05f;
     [SerializeField] private float chalkUnderlayDilate = 0.0f;
     [SerializeField] private Color chalkShadowColor = new Color(0f, 0f, 0f, 0.18f);
-
+    
+    [Header("Sound")]
+    [SerializeField] private AudioClip correct;
+    [SerializeField] private AudioClip fail;
+    
     public Action OnTimeToEvaluatePassed;
 
     public Texture2D DrawTexture { get; private set; }
@@ -370,6 +374,11 @@ public class Drawer : MonoBehaviour
             _recognizedNumberSequence.Append(
                 numberUI.DOScale(1f, settleDuration).SetEase(Ease.InOutQuad));
 
+            _recognizedNumberSequence.AppendCallback(() =>
+            {
+                ServiceLocator.Instance.AudioManager.PlayUIRandomPitch(correct);
+            });
+
             _recognizedNumberSequence.Append(
                 numberUI.DOPunchRotation(new Vector3(0f, 0f, popRotationPunch * side), wiggleDuration, 8, 0.7f));
 
@@ -404,6 +413,10 @@ public class Drawer : MonoBehaviour
 
             _recognizedNumberSequence.Join(
                 numberUI.DOPunchAnchorPos(new Vector2(22f * side, 0f), 0.22f, 8, 0.9f));
+            _recognizedNumberSequence.AppendCallback(() =>
+            {
+                ServiceLocator.Instance.AudioManager.PlayUIRandomPitch(fail);
+            });
 
             _recognizedNumberSequence.Join(
                 numberUI.DOPunchRotation(new Vector3(0f, 0f, 10f * side), 0.22f, 6, 0.8f));

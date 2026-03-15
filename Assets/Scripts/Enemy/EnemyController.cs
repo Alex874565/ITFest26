@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System;
+using System.Collections;
 using UnityEngine.Serialization;
 using System.Collections.Generic;
 
@@ -62,7 +63,15 @@ public class EnemyController : MonoBehaviour, IReachPlayer, IDisappear
 
     public void Disappear()
     {
+        _movementController.Stop();
+        visualController.PlayDisappear();
         OnDisappear?.Invoke(_equationData.Type);
+        StartCoroutine(ReturnToPool());
+    }
+
+    public IEnumerator ReturnToPool()
+    {
+        yield return new WaitForSeconds(2);
         _factory.ReturnToPool(this);
     }
 

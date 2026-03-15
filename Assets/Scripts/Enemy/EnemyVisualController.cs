@@ -8,6 +8,7 @@ public class EnemyVisualController : MonoBehaviour
 {
     [Header("UI")]
     [SerializeField] private TextMeshProUGUI equationText;
+    [SerializeField] private GameObject equationObject;
 
     public event Action OnAttackAnimationFinished;
     
@@ -55,5 +56,11 @@ public class EnemyVisualController : MonoBehaviour
     {
         _equationData = data;
         equationText.text = _equationData.Equation;
+    }
+
+    public void PlayDisappear()
+    {
+        equationObject.SetActive(false);
+        _animator.SetTrigger("Defeat");
     }
 }
