@@ -71,7 +71,7 @@ public class EnemyController : MonoBehaviour, IReachPlayer, IDisappear
 
     public IEnumerator ReturnToPool()
     {
-        yield return new WaitForSeconds(2);
+        yield return new WaitForSeconds(1);
         _factory.ReturnToPool(this);
     }
 
