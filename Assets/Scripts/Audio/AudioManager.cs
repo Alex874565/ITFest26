@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class AudioManager : MonoBehaviour
 {
-    private static AudioManager _instance;
+    public static AudioManager Instance { get; private set; } // Add this
     
     [Header("Sources")]
     [SerializeField] private AudioSource musicSource;
@@ -11,7 +11,7 @@ public class AudioManager : MonoBehaviour
 
     [Header("Music Clips")]
     [SerializeField] private AudioClip menuMusic;
-    //[SerializeField] private AudioClip gameplayMusic;
+    [SerializeField] private AudioClip gameplayMusic;
 
     [Header("Volumes")]
     [Range(0f,1f)] [SerializeField] private float masterVolume = 1f;
@@ -25,12 +25,12 @@ public class AudioManager : MonoBehaviour
 
     private void Awake()
     {
-        if(_instance != null && _instance != this)
+        if(Instance != null && Instance != this)
         {
             Destroy(gameObject);
             return;
         }
-        _instance = this;
+        Instance = this;
         DontDestroyOnLoad(gameObject);
         SetMusicVolume(PlayerPrefs.GetFloat("MusicVolume", .5f));
         SetSFXVolume(PlayerPrefs.GetFloat("SFXVolume", .5f));
@@ -66,11 +66,11 @@ public class AudioManager : MonoBehaviour
         PlayMusic(menuMusic);
     }
 
-    // public void PlayGameplayMusic()
-    // {
-    //     Debug.Log("PLAY GAMEPLAY MUSIC CALLED");
-    //     PlayMusic(gameplayMusic);
-    // }
+    public void PlayGameplayMusic()
+    {
+        Debug.Log("PLAY GAMEPLAY MUSIC CALLED");
+        PlayMusic(gameplayMusic);
+    }
 
     // VOLUME
     public void SetMusicVolume(float value)
@@ -101,35 +101,35 @@ public class AudioManager : MonoBehaviour
     public float GetMasterVolume() => masterVolume;
 
     // SFX
-    // public void PlayUI(AudioClip clip)
-    // {
-    //     if (clip == null) return;
-    //     SfxSource.PlayOneShot(clip);
-    // }
+    public void PlayUI(AudioClip clip)
+    {
+        if (clip == null) return;
+        SfxSource.PlayOneShot(clip);
+    }
     
-    // public void PlayUIRandomPitch(AudioClip clip)
-    // {
-    //     if (clip == null) return;
-    //     SfxSource.pitch = 1f + Random.Range(-pitchVariationRange, pitchVariationRange);
-    //     SfxSource.PlayOneShot(clip);
-    //     SfxSource.pitch = 1f; // Reset pitch after playing
-    // }
+    public void PlayUIRandomPitch(AudioClip clip)
+    {
+        if (clip == null) return;
+        SfxSource.pitch = 1f + Random.Range(-pitchVariationRange, pitchVariationRange);
+        SfxSource.PlayOneShot(clip);
+        SfxSource.pitch = 1f; // Reset pitch after playing
+    }
 
-    // public void StopMusic(float fadeDuration = 0.5f)
-    // {
-    //     musicSource.DOKill();
-    //     // SetUpdate(true) is critical for pausing!
-    //     musicSource.DOFade(0f, fadeDuration).SetUpdate(true).OnComplete(() =>
-    //     {
-    //         musicSource.Stop();
-    //         musicSource.clip = null;
-    //         currentMusic = null;
-    //         musicSource.volume = musicVolume * masterVolume;
-    //     });
-    // }
+    public void StopMusic(float fadeDuration = 0.5f)
+    {
+        musicSource.DOKill();
+        // SetUpdate(true) is critical for pausing!
+        musicSource.DOFade(0f, fadeDuration).SetUpdate(true).OnComplete(() =>
+        {
+            musicSource.Stop();
+            musicSource.clip = null;
+            currentMusic = null;
+            musicSource.volume = musicVolume * masterVolume;
+        });
+    }
 
-    // public AudioSource GetMusicSource()
-    // {
-    //     return musicSource;
-    // }
+    public AudioSource GetMusicSource()
+    {
+        return musicSource;
+    }
 }

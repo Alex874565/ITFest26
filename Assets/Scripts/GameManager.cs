@@ -10,6 +10,7 @@ public class GameManager : MonoBehaviour
     private void Start()
     {
         ResumeGame();
+        ServiceLocator.Instance.AudioManager.PlayGameplayMusic();
     }
     
     private void OnEnable()

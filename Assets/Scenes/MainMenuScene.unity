@@ -349,11 +349,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ba245bf5bbd34d8faaff166f2ae3893f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  SaveData:
-    Money: 0
-    EquationLevels: 00000000000000000000000000000000
-    EquationHighScores: 00000000000000000000000000000000
-    SelectedEquations: 00000000
 --- !u!1 &605748407
 GameObject:
   m_ObjectHideFlags: 0
@@ -411,7 +406,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 2200241894874905253, guid: 4c646b62bb44d95438b8b6e558a958d9, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -450,7 +445,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 4512473914875463900, guid: 3140c72bc363f094a98a6f298641d228, type: 3}
       propertyPath: m_text
-      value: T A P   T O   C O N T I N U E
+      value: TAP TO CONTINUE
       objectReference: {fileID: 0}
     - target: {fileID: 4512473914875463900, guid: 3140c72bc363f094a98a6f298641d228, type: 3}
       propertyPath: m_fontSize
@@ -526,11 +521,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6703632731349226916, guid: 3140c72bc363f094a98a6f298641d228, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 0
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 6703632731349226916, guid: 3140c72bc363f094a98a6f298641d228, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -180
+      value: -374
       objectReference: {fileID: 0}
     - target: {fileID: 6703632731349226916, guid: 3140c72bc363f094a98a6f298641d228, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -1138,6 +1133,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 2455550128358614978, guid: 076dfd10fff88324685b45f78345b34d, type: 3}
+      propertyPath: menuMusic
+      value: 
+      objectReference: {fileID: 8300000, guid: e65497c993567834b96742689a844166, type: 3}
+    - target: {fileID: 2455550128358614978, guid: 076dfd10fff88324685b45f78345b34d, type: 3}
+      propertyPath: gameplayMusic
+      value: 
+      objectReference: {fileID: 8300000, guid: 3d1aee99e5187be4a89863a1975d3dc8, type: 3}
     - target: {fileID: 4129730714279097583, guid: 076dfd10fff88324685b45f78345b34d, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0

@@ -177,7 +177,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   musicSource: {fileID: 5691259334513272983}
   <SfxSource>k__BackingField: {fileID: 4728777744097240339}
-  menuMusic: {fileID: 0}
+  menuMusic: {fileID: 8300000, guid: e65497c993567834b96742689a844166, type: 3}
+  gameplayMusic: {fileID: 8300000, guid: 3d1aee99e5187be4a89863a1975d3dc8, type: 3}
   masterVolume: 1
   musicVolume: 1
   sfxVolume: 1
