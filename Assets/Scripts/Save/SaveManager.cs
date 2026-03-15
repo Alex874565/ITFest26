@@ -48,20 +48,13 @@ public class SaveManager : MonoBehaviour
         {
             List<EquationType> selectedEquations = new List<EquationType>();
 
-            //for (int i = 0; i < SaveData.SelectedEquations.Count; i++)
-            //{
-             //   if (SaveData.SelectedEquations[i])
-             //       selectedEquations.Add((EquationType)i);
-            //}
-
-            //return selectedEquations;
-            return new List<EquationType>()
+            for (int i = 0; i < SaveData.SelectedEquations.Count; i++)
             {
-                //EquationType.Addition,
-                //EquationType.Subtraction,
-                //EquationType.Multiplication,
-                EquationType.Division,
-            };
+                if (SaveData.SelectedEquations[i])
+                    selectedEquations.Add((EquationType)i);
+            }
+
+            return selectedEquations;
         }
     }
     
@@ -96,6 +89,11 @@ public class SaveManager : MonoBehaviour
 
     public void Save(SaveData saveData)
     {
+        Debug.Log("Saving...");
+        foreach (var eq in SaveData.SelectedEquations)
+        {
+            Debug.Log(eq);
+        }
         SaveData = saveData;
         
         string json = JsonUtility.ToJson(SaveData, true);

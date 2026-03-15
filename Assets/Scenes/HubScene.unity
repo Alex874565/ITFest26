@@ -772,6 +772,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 419faf864c608f24bb267bf7134a0081, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  equationType: 3
   button: {fileID: 253551077}
   targetImage: {fileID: 253551078}
   onSprite: {fileID: -1420635468, guid: 808d27bca87888a48bb7d7586d1a9ce4, type: 3}
@@ -4373,6 +4374,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 419faf864c608f24bb267bf7134a0081, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  equationType: 0
   button: {fileID: 1386297282}
   targetImage: {fileID: 1386297284}
   onSprite: {fileID: -1420635468, guid: 808d27bca87888a48bb7d7586d1a9ce4, type: 3}
@@ -4962,6 +4964,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 419faf864c608f24bb267bf7134a0081, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  equationType: 2
   button: {fileID: 1686468220}
   targetImage: {fileID: 1686468221}
   onSprite: {fileID: -1420635468, guid: 808d27bca87888a48bb7d7586d1a9ce4, type: 3}
@@ -5817,6 +5820,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 419faf864c608f24bb267bf7134a0081, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  equationType: 1
   button: {fileID: 2054930948}
   targetImage: {fileID: 2054930949}
   onSprite: {fileID: -1420635468, guid: 808d27bca87888a48bb7d7586d1a9ce4, type: 3}
