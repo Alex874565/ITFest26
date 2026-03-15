@@ -21,37 +21,64 @@ public class ToggleButton : MonoBehaviour
         button.onClick.AddListener(Toggle);
     }
 
+    private void OnDestroy()
+    {
+        button.onClick.RemoveListener(Toggle);
+    }
+
     private void Start()
     {
-        IsOn = ServiceLocator.Instance.PlayerManager.SelectedEquations.Contains(equationType);
-        UpdateVisual();
+        RefreshFromState();
+    }
+
+    public void RefreshFromState()
+    {
+        if (SaveManager.Instance == null)
+        {
+            Debug.LogError("SaveManager.Instance is null");
+            return;
+        }
+
+        IsOn = SaveManager.Instance.IsEquationSelected(equationType);
+        Debug.Log($"{equationType} RefreshFromState -> {IsOn}");
+        UpdateVisualImmediate();
     }
 
     private void Toggle()
     {
-        IsOn = !IsOn;
+        if (SaveManager.Instance == null)
+        {
+            Debug.LogError("SaveManager.Instance is null");
+            return;
+        }
+
         ServiceLocator.Instance.PlayerManager.ToggleSelectEquation(equationType);
-        UpdateVisual();
+
+        IsOn = SaveManager.Instance.IsEquationSelected(equationType);
+        Debug.Log($"{equationType} Toggle -> {IsOn}");
+
+        UpdateVisualImmediate();
         OnToggled?.Invoke();
     }
 
-    private void UpdateVisual()
+    private void UpdateVisualImmediate()
     {
+        if (targetImage == null)
+        {
+            Debug.LogError("Target image is null");
+            return;
+        }
+
         targetImage.DOKill();
         targetImage.transform.DOKill();
-        Sprite newSprite = IsOn ? onSprite : offSprite;
 
-        Sequence seq = DOTween.Sequence();
+        Color c = targetImage.color;
+        c.a = 1f;
+        targetImage.color = c;
 
-        seq.Append(targetImage.DOFade(0.5f, 0.08f));
-        seq.Join(targetImage.transform.DOScale(0.9f, 0.08f));
+        targetImage.transform.localScale = Vector3.one;
+        targetImage.sprite = IsOn ? onSprite : offSprite;
 
-        seq.AppendCallback(() =>
-        {
-            targetImage.sprite = newSprite;
-        });
-
-        seq.Append(targetImage.DOFade(1f, 0.12f));
-        seq.Join(targetImage.transform.DOScale(1f, 0.12f));
+        targetImage.SetAllDirty();
     }
 }

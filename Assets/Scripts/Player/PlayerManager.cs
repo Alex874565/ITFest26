@@ -15,14 +15,13 @@ public class PlayerManager : MonoBehaviour
     public Dictionary<EquationType, int> EquationLevels { get; private set; }
     public Dictionary<EquationType, int> EquationHighScores { get; private set; }
     public Dictionary<UnlockableType, List<CosmeticState>> Unlocks { get; private set; }
-    public List<EquationType> SelectedEquations { get; private set; }
-
+    public List<EquationType> SelectedEquations => SaveManager.Instance.SelectedEquations;
+    
     private void Start()
     {
         Money = SaveManager.Instance.Money;
         EquationLevels = SaveManager.Instance.EquationLevels;
         EquationHighScores = SaveManager.Instance.EquationHighScores;
-        SelectedEquations = SaveManager.Instance.SelectedEquations;
         Unlocks = SaveManager.Instance.Unlocks;
         OnDataLoaded?.Invoke();
     }
@@ -95,14 +94,8 @@ public class PlayerManager : MonoBehaviour
 
     public void ToggleSelectEquation(EquationType equationType)
     {
-        if(SelectedEquations.Contains(equationType))
-        {
-            SelectedEquations.Remove(equationType);
-        }
-        else
-        {
-            SelectedEquations.Add(equationType);
-        }
+        bool current = SaveManager.Instance.IsEquationSelected(equationType);
+        SaveManager.Instance.SetEquationSelected(equationType, !current);
         Save();
     }
     
@@ -171,7 +164,14 @@ public class PlayerManager : MonoBehaviour
 
     private void Save()
     {
-        SaveData saveData = new SaveData(Money, EquationLevels, EquationHighScores, SelectedEquations, Unlocks);
+        SaveData saveData = new SaveData(
+            Money,
+            EquationLevels,
+            EquationHighScores,
+            SaveManager.Instance.SelectedEquations,
+            Unlocks
+        );
+
         SaveManager.Instance.Save(saveData);
     }
 }

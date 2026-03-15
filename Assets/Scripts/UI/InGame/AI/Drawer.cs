@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using System;
 using DG.Tweening;
 using TMPro;
+using UnityEngine.InputSystem;
 
 public class Drawer : MonoBehaviour
 {
@@ -137,11 +138,15 @@ public class Drawer : MonoBehaviour
             _wasDrawingLastFrame = false;
             return;
         }
-
-        if (!TryGetTexturePixelPosition(Input.mousePosition, out Vector2 pixelPos))
+        if (Pointer.current == null)
             return;
 
-        _lastDrawScreenPosition = Input.mousePosition;
+        Vector2 screenPos = Pointer.current.position.ReadValue();
+
+        if (!TryGetTexturePixelPosition(screenPos, out Vector2 pixelPos))
+            return;
+
+        _lastDrawScreenPosition = screenPos;
         _hasLastDrawPosition = true;
 
         if (!_wasDrawingLastFrame)

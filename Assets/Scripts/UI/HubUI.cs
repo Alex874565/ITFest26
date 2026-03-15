@@ -48,13 +48,31 @@ public class HubUI : MonoBehaviour
 
         yield return null;
 
+        RefreshButtons();
         CheckPlayButton();
+
         ServiceLocator.Instance.AudioManager.PlayMenuMusic();
+    }
+
+    private void OnDestroy()
+    {
+        additionButton.OnToggled -= CheckPlayButton;
+        subtractionButton.OnToggled -= CheckPlayButton;
+        multiplicationButton.OnToggled -= CheckPlayButton;
+        divisionButton.OnToggled -= CheckPlayButton;
+    }
+
+    private void RefreshButtons()
+    {
+        additionButton.RefreshFromState();
+        subtractionButton.RefreshFromState();
+        multiplicationButton.RefreshFromState();
+        divisionButton.RefreshFromState();
     }
 
     private void CheckPlayButton()
     {
-        bool anyEnabled = ServiceLocator.Instance.PlayerManager.SelectedEquations.Count > 0;
+        bool anyEnabled = SaveManager.Instance.SelectedEquations.Count > 0;
         playButton.interactable = anyEnabled;
     }
 }

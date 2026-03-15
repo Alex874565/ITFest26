@@ -18,11 +18,6 @@ public class PauseUI : MonoBehaviour
             Hide();
             
         });
-        closeButton.onClick.AddListener(() =>
-        {
-            Hide();
-            ServiceLocator.Instance.GameManager.ResumeGame();
-        });
         settingsButton.onClick.AddListener( () =>
         {
             ServiceLocator.Instance.UIManager.SettingsUI.Show();
