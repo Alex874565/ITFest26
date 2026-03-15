@@ -38,6 +38,14 @@ public class DigitSegmenter : MonoBehaviour
         public float[] mnistPixels;
     }
 
+    private struct ScaledBlobThresholds
+    {
+        public int MinBlobPixels;
+        public int MinWidth;
+        public int MinHeight;
+        public float MinFillRatio;
+    }
+
     private sealed class Scratch
     {
         public bool[] foreground;
@@ -86,21 +94,31 @@ public class DigitSegmenter : MonoBehaviour
 
     public List<DigitCandidate> ExtractDigits(Texture2D source)
     {
-        return ExtractDigitsFromPixels(source.GetPixels32(), source.width, source.height);
+        return ExtractDigitsFromPixels(source.GetPixels32(), source.width, source.height, 1f, 1f);
     }
 
-    public List<DigitCandidate> ExtractDigitsFromPixels(Color32[] pixels, int width, int height)
+    public List<DigitCandidate> ExtractDigitsFromPixels(
+        Color32[] pixels,
+        int width,
+        int height,
+        float scaleX = 1f,
+        float scaleY = 1f)
     {
         var results = new List<DigitCandidate>(8);
-        ExtractDigitsFromPixelsInto(pixels, width, height, results, _mainScratch);
+        ExtractDigitsFromPixelsInto(pixels, width, height, results, _mainScratch, scaleX, scaleY);
         return results;
     }
 
-    public List<DigitCandidate> ExtractDigitsFromPixelsThreadSafe(Color32[] pixels, int width, int height)
+    public List<DigitCandidate> ExtractDigitsFromPixelsThreadSafe(
+        Color32[] pixels,
+        int width,
+        int height,
+        float scaleX = 1f,
+        float scaleY = 1f)
     {
         var results = new List<DigitCandidate>(8);
         var scratch = new Scratch();
-        ExtractDigitsFromPixelsInto(pixels, width, height, results, scratch);
+        ExtractDigitsFromPixelsInto(pixels, width, height, results, scratch, scaleX, scaleY);
         return results;
     }
 
@@ -108,6 +126,8 @@ public class DigitSegmenter : MonoBehaviour
         Color32[] pixels,
         int width,
         int height,
+        float scaleX,
+        float scaleY,
         List<DigitCandidate> results,
         int workBudgetPerYield = 20000)
     {
@@ -116,6 +136,8 @@ public class DigitSegmenter : MonoBehaviour
         int pixelCount = width * height;
         _mainScratch.EnsurePixelBuffers(pixelCount);
         _mainScratch.EnsureCanvasBuffers(outputSize);
+
+        ScaledBlobThresholds thresholds = GetScaledBlobThresholds(scaleX, scaleY);
 
         bool[] foreground = _mainScratch.foreground;
         bool[] tempBinary = _mainScratch.tempBinary;
@@ -200,7 +222,7 @@ public class DigitSegmenter : MonoBehaviour
                     }
                 }
 
-                if (!PassesBlobFilter(blobCount, minX, maxX, minY, maxY))
+                if (!PassesBlobFilter(blobCount, minX, maxX, minY, maxY, thresholds))
                     continue;
 
                 RectInt bounds = new RectInt(minX, minY, maxX - minX + 1, maxY - minY + 1);
@@ -234,13 +256,17 @@ public class DigitSegmenter : MonoBehaviour
         int width,
         int height,
         List<DigitCandidate> results,
-        Scratch scratch)
+        Scratch scratch,
+        float scaleX,
+        float scaleY)
     {
         results.Clear();
 
         int pixelCount = width * height;
         scratch.EnsurePixelBuffers(pixelCount);
         scratch.EnsureCanvasBuffers(outputSize);
+
+        ScaledBlobThresholds thresholds = GetScaledBlobThresholds(scaleX, scaleY);
 
         bool[] foreground = scratch.foreground;
         bool[] tempBinary = scratch.tempBinary;
@@ -300,7 +326,7 @@ public class DigitSegmenter : MonoBehaviour
                     TryEnqueue(px, py + 1, width, height, foreground, visited, queue, ref tail);
                 }
 
-                if (!PassesBlobFilter(blobCount, minX, maxX, minY, maxY))
+                if (!PassesBlobFilter(blobCount, minX, maxX, minY, maxY, thresholds))
                     continue;
 
                 RectInt bounds = new RectInt(minX, minY, maxX - minX + 1, maxY - minY + 1);
@@ -323,20 +349,37 @@ public class DigitSegmenter : MonoBehaviour
         results.Sort((a, b) => a.bounds.x.CompareTo(b.bounds.x));
     }
 
-    private bool PassesBlobFilter(int blobCount, int minX, int maxX, int minY, int maxY)
+    private ScaledBlobThresholds GetScaledBlobThresholds(float scaleX, float scaleY)
+    {
+        return new ScaledBlobThresholds
+        {
+            MinBlobPixels = Mathf.Max(3, Mathf.RoundToInt(minBlobPixels * scaleX * scaleY)),
+            MinWidth = Mathf.Max(1, Mathf.RoundToInt(minWidth * scaleX)),
+            MinHeight = Mathf.Max(1, Mathf.RoundToInt(minHeight * scaleY)),
+            MinFillRatio = minFillRatio
+        };
+    }
+
+    private bool PassesBlobFilter(
+        int blobCount,
+        int minX,
+        int maxX,
+        int minY,
+        int maxY,
+        ScaledBlobThresholds thresholds)
     {
         int blobWidth = maxX - minX + 1;
         int blobHeight = maxY - minY + 1;
         int area = blobWidth * blobHeight;
 
-        if (blobCount < minBlobPixels)
+        if (blobCount < thresholds.MinBlobPixels)
             return false;
 
-        if (blobWidth < minWidth || blobHeight < minHeight)
+        if (blobWidth < thresholds.MinWidth || blobHeight < thresholds.MinHeight)
             return false;
 
         float fillRatio = blobCount / (float)area;
-        if (fillRatio < minFillRatio)
+        if (fillRatio < thresholds.MinFillRatio)
             return false;
 
         return true;
@@ -366,7 +409,7 @@ public class DigitSegmenter : MonoBehaviour
     private bool ShouldUseBinaryClose()
     {
 #if UNITY_WEBGL && !UNITY_EDITOR
-    return useBinaryClose;
+        return useBinaryClose;
 #else
         return useBinaryClose && !useBinaryCloseOnWebGLOnly;
 #endif

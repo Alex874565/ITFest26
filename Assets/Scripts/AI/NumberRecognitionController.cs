@@ -70,8 +70,8 @@ public class NumberRecognitionController : MonoBehaviour
     private IEnumerator Start()
     {
 #if UNITY_WEBGL && !UNITY_EDITOR
-    segmentationWorkBudgetPerFrame = 3000;
-    minRecognitionInterval = 0.2f;
+        segmentationWorkBudgetPerFrame = 3000;
+        minRecognitionInterval = 0.2f;
 #else
         segmentationWorkBudgetPerFrame = 25000;
         minRecognitionInterval = 0.05f;
@@ -86,7 +86,6 @@ public class NumberRecognitionController : MonoBehaviour
 
     private void OnDisable()
     {
-
         if (_recognizeRoutine != null)
         {
             StopCoroutine(_recognizeRoutine);
@@ -154,7 +153,9 @@ public class NumberRecognitionController : MonoBehaviour
             sourceHeight,
             out Color32[] analysisPixels,
             out int analysisWidth,
-            out int analysisHeight
+            out int analysisHeight,
+            out float analysisScaleX,
+            out float analysisScaleY
         );
 
 #if UNITY_WEBGL && !UNITY_EDITOR
@@ -162,6 +163,8 @@ public class NumberRecognitionController : MonoBehaviour
             analysisPixels,
             analysisWidth,
             analysisHeight,
+            analysisScaleX,
+            analysisScaleY,
             _segmentedDigits,
             segmentationWorkBudgetPerFrame
         );
@@ -172,7 +175,13 @@ public class NumberRecognitionController : MonoBehaviour
         CancellationToken token = _segmentationCts.Token;
 
         Task<List<DigitSegmenter.DigitCandidate>> segmentationTask =
-            Task.Run(() => segmenter.ExtractDigitsFromPixelsThreadSafe(analysisPixels, analysisWidth, analysisHeight), token);
+            Task.Run(() => segmenter.ExtractDigitsFromPixelsThreadSafe(
+                analysisPixels,
+                analysisWidth,
+                analysisHeight,
+                analysisScaleX,
+                analysisScaleY
+            ), token);
 
         while (!segmentationTask.IsCompleted)
             yield return null;
@@ -256,8 +265,10 @@ public class NumberRecognitionController : MonoBehaviour
         }
 
         OnNumberRecognized?.Invoke(chosen.NumberValue);
+
         if (drawer != null)
             drawer.Clear();
+
         FinishRecognition();
     }
 
@@ -267,7 +278,9 @@ public class NumberRecognitionController : MonoBehaviour
         int sourceHeight,
         out Color32[] analysisPixels,
         out int analysisWidth,
-        out int analysisHeight)
+        out int analysisHeight,
+        out float scaleX,
+        out float scaleY)
     {
         int maxSize =
 #if UNITY_WEBGL && !UNITY_EDITOR
@@ -281,6 +294,8 @@ public class NumberRecognitionController : MonoBehaviour
             analysisPixels = sourcePixels;
             analysisWidth = sourceWidth;
             analysisHeight = sourceHeight;
+            scaleX = 1f;
+            scaleY = 1f;
             return;
         }
 
@@ -290,12 +305,17 @@ public class NumberRecognitionController : MonoBehaviour
             analysisPixels = sourcePixels;
             analysisWidth = sourceWidth;
             analysisHeight = sourceHeight;
+            scaleX = 1f;
+            scaleY = 1f;
             return;
         }
 
         float scale = maxSize / (float)longestSide;
         analysisWidth = Mathf.Max(1, Mathf.RoundToInt(sourceWidth * scale));
         analysisHeight = Mathf.Max(1, Mathf.RoundToInt(sourceHeight * scale));
+
+        scaleX = analysisWidth / (float)sourceWidth;
+        scaleY = analysisHeight / (float)sourceHeight;
 
         int dstLen = analysisWidth * analysisHeight;
         if (_analysisPixelsBuffer == null || _analysisPixelsBuffer.Length != dstLen)
