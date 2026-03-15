@@ -52,6 +52,8 @@ MonoBehaviour:
   preparationTime: 3
   equationsCategoriesDatabase: {fileID: 11400000, guid: 1082533ab3193e24f8fc30e640a586d5, type: 2}
   visualController: {fileID: 9087960853086095000}
+  reachPlayerSFX: {fileID: 8300000, guid: 0af4e7c2c8f89a746b6b8dc1c4a6a3eb, type: 3}
+  finishAttackSFX: {fileID: 8300000, guid: dba32306758a8ce4bb7f23ede9d796fa, type: 3}
 --- !u!114 &7333889342549597684
 MonoBehaviour:
   m_ObjectHideFlags: 0

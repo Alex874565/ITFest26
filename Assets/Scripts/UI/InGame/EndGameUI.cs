@@ -16,7 +16,7 @@ public class EndGameUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI moneyText;
 
     [Header("Buttons")]
-    [SerializeField] private Button settingsButton;
+    //[SerializeField] private Button settingsButton;
     [SerializeField] private Button hubButton;
     [SerializeField] private Button retryButton;
 
@@ -30,7 +30,7 @@ public class EndGameUI : MonoBehaviour
         gameObject.SetActive(false);
         playerManager.OnEndGameValuesCalculated += Show;
 
-        settingsButton.onClick.AddListener(OpenSettings);
+        //settingsButton.onClick.AddListener(OpenSettings);
         hubButton.onClick.AddListener(BackToHub);
         retryButton.onClick.AddListener(Retry);
     }

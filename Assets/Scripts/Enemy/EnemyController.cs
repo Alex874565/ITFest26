@@ -26,6 +26,9 @@ public class EnemyController : MonoBehaviour, IReachPlayer, IDisappear
     
     private delegate int GetCurrentLevelDelegate(EquationType equationType);
     private GetCurrentLevelDelegate GetDifficultyLevel;
+
+    [SerializeField] private AudioClip reachPlayerSFX;
+    [SerializeField] private AudioClip finishAttackSFX;
     
     private void Awake()
     {
@@ -79,11 +82,13 @@ public class EnemyController : MonoBehaviour, IReachPlayer, IDisappear
     {
         _movementController.ReachPlayer(preparationTime);
         visualController.ReachPlayer(preparationTime);
+        ServiceLocator.Instance.AudioManager.PlayUIRandomPitch(reachPlayerSFX);
     }
 
     public void FinishAttack()
     {
         OnAttackFinished?.Invoke();
+        ServiceLocator.Instance.AudioManager.PlayUIRandomPitch(finishAttackSFX);
     }
 
     public void SetFactory(EnemyFactory factory)
