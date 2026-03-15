@@ -4,36 +4,44 @@ using UnityEngine.UI;
 
 public class EquationUI : MonoBehaviour
 {
-    
     [SerializeField] private EquationType type;
     [SerializeField] private Image fill;
     [SerializeField] private TextMeshProUGUI score;
     [SerializeField] private TextMeshProUGUI level;
-    
+
     [SerializeField] private EquationsCategoriesDatabase equationsDatabase;
 
     private void Start()
     {
+        if (SaveManager.Instance == null)
+        {
+            Debug.LogError("SaveManager.Instance is null");
+            return;
+        }
+
         EquationCategoryData categoryData = equationsDatabase.GetEquationCategoryData(type);
+        if (categoryData == null)
+            return;
+
         int equationLevel = SaveManager.Instance.EquationLevels.TryGetValue(type, out int eqLevel) ? eqLevel : 0;
         int equationScore = SaveManager.Instance.EquationHighScores.TryGetValue(type, out int highScore) ? highScore : 0;
-        if (categoryData != null)
+
+        if (equationLevel < categoryData.AchievmentThresholds.Count - 1)
         {
-            if (equationLevel < categoryData.AchievmentThresholds.Count - 1)
-            {
-                fill.fillAmount = Mathf.Clamp(equationScore / (float)categoryData.AchievmentThresholds[equationLevel], 0, 1);
-                score.text = equationScore + " / " + categoryData.AchievmentThresholds[equationLevel];
-                level.text = (equationLevel + 1).ToString();
-                Debug.Log(equationScore);
-                Debug.Log(categoryData.AchievmentThresholds[equationLevel]);
-                Debug.Log(fill.fillAmount);
-            }
-            else
-            {
-                fill.fillAmount = 1;
-                score.text = equationScore.ToString();
-                level.text = "MAX";
-            }
+            int threshold = categoryData.AchievmentThresholds[equationLevel];
+            fill.fillAmount = threshold > 0 ? Mathf.Clamp(equationScore / (float)threshold, 0f, 1f) : 0f;
+            score.text = equationScore + " / " + threshold;
+            level.text = (equationLevel + 1).ToString();
+
+            Debug.Log(equationScore);
+            Debug.Log(threshold);
+            Debug.Log(fill.fillAmount);
+        }
+        else
+        {
+            fill.fillAmount = 1f;
+            score.text = equationScore.ToString();
+            level.text = "MAX";
         }
     }
 }

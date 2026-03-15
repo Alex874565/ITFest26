@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -29,11 +30,11 @@ public class HubUI : MonoBehaviour
         {
             ServiceLocator.Instance.UIManager.SettingsUI.Show();
         });
+
         shopButton.onClick.AddListener(() =>
         {
             ServiceLocator.Instance.UIManager.ShopUI.Show();
         });
-
 
         additionButton.OnToggled += CheckPlayButton;
         subtractionButton.OnToggled += CheckPlayButton;
@@ -41,18 +42,19 @@ public class HubUI : MonoBehaviour
         divisionButton.OnToggled += CheckPlayButton;
     }
 
-    private void Start()
+    private IEnumerator Start()
     {
         stagger.OpenMenu();
-        CheckPlayButton();
 
+        yield return null;
+
+        CheckPlayButton();
         ServiceLocator.Instance.AudioManager.PlayMenuMusic();
     }
 
     private void CheckPlayButton()
     {
         bool anyEnabled = ServiceLocator.Instance.PlayerManager.SelectedEquations.Count > 0;
-
         playButton.interactable = anyEnabled;
     }
 }
