@@ -1,9 +1,11 @@
 using UnityEngine;
 using UnityEngine.UI;
 using System;
+using DG.Tweening;
 
 public class ToggleButton : MonoBehaviour
 {
+    [SerializeField] private EquationType equationType;
     [SerializeField] private Button button;
     [SerializeField] private Image targetImage;
 
@@ -17,25 +19,39 @@ public class ToggleButton : MonoBehaviour
     private void Awake()
     {
         button.onClick.AddListener(Toggle);
+    }
+
+    private void Start()
+    {
+        IsOn = ServiceLocator.Instance.PlayerManager.SelectedEquations.Contains(equationType);
         UpdateVisual();
     }
 
     private void Toggle()
     {
         IsOn = !IsOn;
-        UpdateVisual();
-        OnToggled?.Invoke();
-    }
-
-    public void SetState(bool value)
-    {
-        IsOn = value;
+        ServiceLocator.Instance.PlayerManager.ToggleSelectEquation(equationType);
         UpdateVisual();
         OnToggled?.Invoke();
     }
 
     private void UpdateVisual()
     {
-        targetImage.sprite = IsOn ? onSprite : offSprite;
+        targetImage.DOKill();
+        targetImage.transform.DOKill();
+        Sprite newSprite = IsOn ? onSprite : offSprite;
+
+        Sequence seq = DOTween.Sequence();
+
+        seq.Append(targetImage.DOFade(0.5f, 0.08f));
+        seq.Join(targetImage.transform.DOScale(0.9f, 0.08f));
+
+        seq.AppendCallback(() =>
+        {
+            targetImage.sprite = newSprite;
+        });
+
+        seq.Append(targetImage.DOFade(1f, 0.12f));
+        seq.Join(targetImage.transform.DOScale(1f, 0.12f));
     }
 }

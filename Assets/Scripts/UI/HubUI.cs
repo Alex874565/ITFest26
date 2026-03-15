@@ -45,17 +45,11 @@ public class HubUI : MonoBehaviour
     {
         stagger.OpenMenu();
         CheckPlayButton();
-
-        additionButton.SetState(true);
     }
 
     private void CheckPlayButton()
     {
-        bool anyEnabled =
-            additionButton.IsOn ||
-            subtractionButton.IsOn ||
-            multiplicationButton.IsOn ||
-            divisionButton.IsOn;
+        bool anyEnabled = ServiceLocator.Instance.PlayerManager.SelectedEquations.Count > 0;
 
         playButton.interactable = anyEnabled;
     }

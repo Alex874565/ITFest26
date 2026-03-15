@@ -6,6 +6,7 @@ using System;
 public class CosmeticItemUI : MonoBehaviour
 {
     [Header("UI")]
+    [SerializeField] private Image item;
     [SerializeField] private Button button;
     [SerializeField] private Image buttonImage;
 
@@ -13,7 +14,7 @@ public class CosmeticItemUI : MonoBehaviour
     [SerializeField] private GameObject priceContainer;
     [SerializeField] private TextMeshProUGUI priceText;
 
-    [Header("Sprites")]
+    [Header("Sprites")] 
     [SerializeField] private Sprite buySprite;
     [SerializeField] private Sprite equipSprite;
     [SerializeField] private Sprite equippedSprite;
@@ -52,6 +53,11 @@ public class CosmeticItemUI : MonoBehaviour
             state = CosmeticState.Locked;
         
         priceText.text = price.ToString();
+        item.sprite = data.Sprite;
+        if (data.Type != UnlockableType.Background)
+        {
+            item.preserveAspect = true;
+        }
 
         UpdateVisual();
     }

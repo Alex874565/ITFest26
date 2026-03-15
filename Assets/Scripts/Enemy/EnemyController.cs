@@ -46,7 +46,6 @@ public class EnemyController : MonoBehaviour, IReachPlayer, IDisappear
     
     public void Instantiate(EquationType equationType, EnemyStats stats, PlayerController playerController)
     {
-        Debug.Log(equationType);
         EquationType = equationType;
         _movementController.Instantiate(stats, playerController.gameObject.transform.position);
         GetDifficultyLevel = playerController.GetDifficultyLevel;
@@ -63,7 +62,6 @@ public class EnemyController : MonoBehaviour, IReachPlayer, IDisappear
 
     public void Disappear()
     {
-        Debug.Log(_equationData.Type);
         OnDisappear?.Invoke(_equationData.Type);
         _factory.ReturnToPool(this);
     }
@@ -115,7 +113,11 @@ public class EnemyController : MonoBehaviour, IReachPlayer, IDisappear
 
             case EquationType.Subtraction:
                 x = UnityEngine.Random.Range(1, max + 1);
-                y = UnityEngine.Random.Range(1, x + 1); // keeps result non-negative
+                y = UnityEngine.Random.Range(1, max + 1);
+
+                if (y > x)
+                    (x, y) = (y, x);
+
                 answer = x - y;
                 equation = $"{x} - {y}";
                 break;
@@ -155,7 +157,7 @@ public class EnemyController : MonoBehaviour, IReachPlayer, IDisappear
                 x = choice.x;
                 y = choice.y;
                 answer = choice.answer;
-                equation = $"{x} / {y}";
+                equation = $"{x} ÷ {y}";
                 break;
             }
 

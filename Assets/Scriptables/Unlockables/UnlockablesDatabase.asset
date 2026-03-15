@@ -13,6 +13,17 @@ MonoBehaviour:
   m_Name: UnlockablesDatabase
   m_EditorClassIdentifier: 
   <UnlockableCategories>k__BackingField:
+  - <Type>k__BackingField: 0
+    <Unlockables>k__BackingField:
+    - <Type>k__BackingField: 0
+      <Sprite>k__BackingField: {fileID: 21300000, guid: 6e2ee9e4b7346384dbb7ed1a0e0dd988, type: 3}
+      <Cost>k__BackingField: 0
+    - <Type>k__BackingField: 0
+      <Sprite>k__BackingField: {fileID: 21300000, guid: 1b89483f8eea97549b04799125ad549b, type: 3}
+      <Cost>k__BackingField: 500
+    - <Type>k__BackingField: 0
+      <Sprite>k__BackingField: {fileID: 21300000, guid: 2d646d4671491b34ba9dc5ab0a156d05, type: 3}
+      <Cost>k__BackingField: 1000
   - <Type>k__BackingField: 1
     <Unlockables>k__BackingField:
     - <Type>k__BackingField: 1

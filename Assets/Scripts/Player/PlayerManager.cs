@@ -93,7 +93,7 @@ public class PlayerManager : MonoBehaviour
         Save();
     }
 
-    private void ToggleSelectEquation(EquationType equationType)
+    public void ToggleSelectEquation(EquationType equationType)
     {
         if(SelectedEquations.Contains(equationType))
         {

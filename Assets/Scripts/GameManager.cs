@@ -6,22 +6,7 @@ public class GameManager : MonoBehaviour
 {
     [SerializeField] private PlayerController _playerController;
     [SerializeField] private InputManager _inputManager;
-    private static GameManager _instance;
-    
-    public bool IsPaused { get; private set; }
 
-    private void Awake()
-    {
-        if (_instance != null && _instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
-        
-        _instance = this;
-        DontDestroyOnLoad(gameObject);
-    }
-    
     private void Start()
     {
         ResumeGame();
@@ -36,12 +21,7 @@ public class GameManager : MonoBehaviour
     private void OnDisable()
     {
         _inputManager.OnEscapeAction -= InputManager_OnEscapeAction;
-        _playerController.OnDeath -= PauseGame;
-    }
-
-    private void OnDestroy()
-    {
-        if (_instance != this) return;
+        _playerController.OnDeath -= PauseGame; 
     }
 
     public void InputManager_OnEscapeAction(object sender, EventArgs e)
@@ -72,15 +52,11 @@ public class GameManager : MonoBehaviour
 
     public void PauseGame()
     {
-        Debug.Log("paused");
-        IsPaused = true;
         Time.timeScale = 0f;
     }
 
     public void ResumeGame()
     {
-        Debug.Log("resumed");
-        IsPaused = false;
         Time.timeScale = 1f;
     }
 }
