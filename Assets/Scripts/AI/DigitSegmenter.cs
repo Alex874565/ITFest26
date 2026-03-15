@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class DigitSegmenter : MonoBehaviour
@@ -35,9 +37,48 @@ public class DigitSegmenter : MonoBehaviour
         public float[] mnistPixels;
     }
 
-    private bool[] _foreground;
-    private bool[] _visited;
-    private int[] _queue;
+    private sealed class Scratch
+    {
+        public bool[] foreground;
+        public bool[] visited;
+        public int[] queue;
+
+        public float[] canvasA;   // outputSize * outputSize
+        public float[] canvasB;   // outputSize * outputSize
+        public float[] scaled;    // resized crop temp
+
+        public void EnsurePixelBuffers(int pixelCount)
+        {
+            if (foreground == null || foreground.Length < pixelCount)
+                foreground = new bool[pixelCount];
+
+            if (visited == null || visited.Length < pixelCount)
+                visited = new bool[pixelCount];
+
+            if (queue == null || queue.Length < pixelCount)
+                queue = new int[pixelCount];
+        }
+
+        public void EnsureCanvasBuffers(int canvasSize)
+        {
+            int len = canvasSize * canvasSize;
+
+            if (canvasA == null || canvasA.Length != len)
+                canvasA = new float[len];
+
+            if (canvasB == null || canvasB.Length != len)
+                canvasB = new float[len];
+        }
+
+        public void EnsureScaledBuffer(int length)
+        {
+            if (scaled == null || scaled.Length < length)
+                scaled = new float[length];
+        }
+    }
+
+    // Main-thread reusable scratch for sync / coroutine use.
+    private readonly Scratch _mainScratch = new Scratch();
 
     public List<DigitCandidate> ExtractDigits(Texture2D source)
     {
@@ -46,17 +87,52 @@ public class DigitSegmenter : MonoBehaviour
 
     public List<DigitCandidate> ExtractDigitsFromPixels(Color32[] pixels, int width, int height)
     {
+        var results = new List<DigitCandidate>(8);
+        ExtractDigitsFromPixelsInto(pixels, width, height, results, _mainScratch);
+        return results;
+    }
+
+    // Thread-safe entry point for worker thread usage.
+    public List<DigitCandidate> ExtractDigitsFromPixelsThreadSafe(Color32[] pixels, int width, int height)
+    {
+        var results = new List<DigitCandidate>(8);
+        var scratch = new Scratch();
+        ExtractDigitsFromPixelsInto(pixels, width, height, results, scratch);
+        return results;
+    }
+
+    // WebGL-safe / smooth path
+    public IEnumerator ExtractDigitsFromPixelsCoroutine(
+        Color32[] pixels,
+        int width,
+        int height,
+        List<DigitCandidate> results,
+        int workBudgetPerYield = 20000)
+    {
+        results.Clear();
+
         int pixelCount = width * height;
-        EnsureBuffers(pixelCount);
+        _mainScratch.EnsurePixelBuffers(pixelCount);
+        _mainScratch.EnsureCanvasBuffers(outputSize);
+
+        bool[] foreground = _mainScratch.foreground;
+        bool[] visited = _mainScratch.visited;
+        int[] queue = _mainScratch.queue;
+
+        int work = 0;
 
         for (int i = 0; i < pixelCount; i++)
         {
             float v = GetSourceValue(pixels[i]);
-            _foreground[i] = v >= whiteThreshold;
-            _visited[i] = false;
-        }
+            foreground[i] = v >= whiteThreshold;
+            visited[i] = false;
 
-        List<DigitCandidate> results = new List<DigitCandidate>(8);
+            if (++work >= workBudgetPerYield)
+            {
+                work = 0;
+                yield return null;
+            }
+        }
 
         for (int y = 0; y < height; y++)
         {
@@ -65,14 +141,14 @@ public class DigitSegmenter : MonoBehaviour
             for (int x = 0; x < width; x++)
             {
                 int startIndex = rowStart + x;
-                if (_visited[startIndex] || !_foreground[startIndex])
+                if (visited[startIndex] || !foreground[startIndex])
                     continue;
 
                 int head = 0;
                 int tail = 0;
 
-                _visited[startIndex] = true;
-                _queue[tail++] = startIndex;
+                visited[startIndex] = true;
+                queue[tail++] = startIndex;
 
                 int minX = x;
                 int maxX = x;
@@ -82,7 +158,7 @@ public class DigitSegmenter : MonoBehaviour
 
                 while (head < tail)
                 {
-                    int idx = _queue[head++];
+                    int idx = queue[head++];
                     blobCount++;
 
                     int px = idx % width;
@@ -93,7 +169,37 @@ public class DigitSegmenter : MonoBehaviour
                     if (py < minY) minY = py;
                     if (py > maxY) maxY = py;
 
-                    VisitNeighborsWithGapTolerance(px, py);
+                    int yMin = py - maxVerticalGap;
+                    int yMax = py + maxVerticalGap;
+                    int xMin = px - maxHorizontalGap;
+                    int xMax = px + maxHorizontalGap;
+
+                    for (int ny = yMin; ny <= yMax; ny++)
+                    {
+                        if ((uint)ny >= (uint)height)
+                            continue;
+
+                        int nRow = ny * width;
+
+                        for (int nx = xMin; nx <= xMax; nx++)
+                        {
+                            if ((nx == px && ny == py) || (uint)nx >= (uint)width)
+                                continue;
+
+                            int nIdx = nRow + nx;
+                            if (visited[nIdx] || !foreground[nIdx])
+                                continue;
+
+                            visited[nIdx] = true;
+                            queue[tail++] = nIdx;
+                        }
+                    }
+
+                    if (++work >= workBudgetPerYield)
+                    {
+                        work = 0;
+                        yield return null;
+                    }
                 }
 
                 int blobWidth = maxX - minX + 1;
@@ -111,7 +217,7 @@ public class DigitSegmenter : MonoBehaviour
                     continue;
 
                 RectInt bounds = new RectInt(minX, minY, blobWidth, blobHeight);
-                float[] mnist = BuildMnistTensor(pixels, width, height, bounds);
+                float[] mnist = BuildMnistTensor(pixels, width, height, bounds, _mainScratch);
 
                 results.Add(new DigitCandidate
                 {
@@ -119,50 +225,137 @@ public class DigitSegmenter : MonoBehaviour
                     mnistPixels = mnist
                 });
 
-                void VisitNeighborsWithGapTolerance(int cx, int cy)
+                if (++work >= workBudgetPerYield)
                 {
-                    for (int dy = -maxVerticalGap; dy <= maxVerticalGap; dy++)
-                    {
-                        for (int dx = -maxHorizontalGap; dx <= maxHorizontalGap; dx++)
-                        {
-                            if (dx == 0 && dy == 0)
-                                continue;
-
-                            int nx = cx + dx;
-                            int ny = cy + dy;
-
-                            if ((uint)nx >= (uint)width || (uint)ny >= (uint)height)
-                                continue;
-
-                            int nIdx = ny * width + nx;
-                            if (_visited[nIdx] || !_foreground[nIdx])
-                                continue;
-
-                            _visited[nIdx] = true;
-                            _queue[tail++] = nIdx;
-                        }
-                    }
+                    work = 0;
+                    yield return null;
                 }
             }
         }
 
         results.Sort((a, b) => a.bounds.x.CompareTo(b.bounds.x));
-        return results;
     }
 
-    private void EnsureBuffers(int pixelCount)
+    private void ExtractDigitsFromPixelsInto(
+        Color32[] pixels,
+        int width,
+        int height,
+        List<DigitCandidate> results,
+        Scratch scratch)
     {
-        if (_foreground == null || _foreground.Length != pixelCount)
-            _foreground = new bool[pixelCount];
+        results.Clear();
 
-        if (_visited == null || _visited.Length != pixelCount)
-            _visited = new bool[pixelCount];
+        int pixelCount = width * height;
+        scratch.EnsurePixelBuffers(pixelCount);
+        scratch.EnsureCanvasBuffers(outputSize);
 
-        if (_queue == null || _queue.Length != pixelCount)
-            _queue = new int[pixelCount];
+        bool[] foreground = scratch.foreground;
+        bool[] visited = scratch.visited;
+        int[] queue = scratch.queue;
+
+        for (int i = 0; i < pixelCount; i++)
+        {
+            float v = GetSourceValue(pixels[i]);
+            foreground[i] = v >= whiteThreshold;
+            visited[i] = false;
+        }
+
+        for (int y = 0; y < height; y++)
+        {
+            int rowStart = y * width;
+
+            for (int x = 0; x < width; x++)
+            {
+                int startIndex = rowStart + x;
+                if (visited[startIndex] || !foreground[startIndex])
+                    continue;
+
+                int head = 0;
+                int tail = 0;
+
+                visited[startIndex] = true;
+                queue[tail++] = startIndex;
+
+                int minX = x;
+                int maxX = x;
+                int minY = y;
+                int maxY = y;
+                int blobCount = 0;
+
+                while (head < tail)
+                {
+                    int idx = queue[head++];
+                    blobCount++;
+
+                    int px = idx % width;
+                    int py = idx / width;
+
+                    if (px < minX) minX = px;
+                    if (px > maxX) maxX = px;
+                    if (py < minY) minY = py;
+                    if (py > maxY) maxY = py;
+
+                    int yMin = py - maxVerticalGap;
+                    int yMax = py + maxVerticalGap;
+                    int xMin = px - maxHorizontalGap;
+                    int xMax = px + maxHorizontalGap;
+
+                    for (int ny = yMin; ny <= yMax; ny++)
+                    {
+                        if ((uint)ny >= (uint)height)
+                            continue;
+
+                        int nRow = ny * width;
+
+                        for (int nx = xMin; nx <= xMax; nx++)
+                        {
+                            if ((nx == px && ny == py) || (uint)nx >= (uint)width)
+                                continue;
+
+                            int nIdx = nRow + nx;
+                            if (visited[nIdx] || !foreground[nIdx])
+                                continue;
+
+                            visited[nIdx] = true;
+                            queue[tail++] = nIdx;
+                        }
+                    }
+                }
+
+                int blobWidth = maxX - minX + 1;
+                int blobHeight = maxY - minY + 1;
+                int area = blobWidth * blobHeight;
+
+                if (blobCount < minBlobPixels)
+                    continue;
+
+                if (blobWidth < minWidth || blobHeight < minHeight)
+                    continue;
+
+                float fillRatio = blobCount / (float)area;
+                if (fillRatio < minFillRatio)
+                    continue;
+
+                RectInt bounds = new RectInt(minX, minY, blobWidth, blobHeight);
+                float[] mnist = BuildMnistTensor(pixels, width, height, bounds, scratch);
+
+                results.Add(new DigitCandidate
+                {
+                    bounds = bounds,
+                    mnistPixels = mnist
+                });
+            }
+        }
+
+        results.Sort((a, b) => a.bounds.x.CompareTo(b.bounds.x));
     }
 
-    private float[] BuildMnistTensor(Color32[] pixels, int sourceWidth, int sourceHeight, RectInt bounds)
+    private float[] BuildMnistTensor(
+        Color32[] pixels,
+        int sourceWidth,
+        int sourceHeight,
+        RectInt bounds,
+        Scratch scratch)
     {
         int cropX = Mathf.Max(0, bounds.x - padding);
         int cropY = Mathf.Max(0, bounds.y - padding);
@@ -176,17 +369,27 @@ public class DigitSegmenter : MonoBehaviour
 
         int scaledW = Mathf.Max(1, Mathf.RoundToInt(cropW * scale));
         int scaledH = Mathf.Max(1, Mathf.RoundToInt(cropH * scale));
+        int scaledLen = scaledW * scaledH;
 
-        float[] scaled = new float[scaledW * scaledH];
-        float[] canvas = new float[outputSize * outputSize];
+        scratch.EnsureScaledBuffer(scaledLen);
+        scratch.EnsureCanvasBuffers(outputSize);
+
+        float[] scaled = scratch.scaled;
+        float[] canvasA = scratch.canvasA;
+        float[] canvasB = scratch.canvasB;
+
+        Array.Clear(canvasA, 0, canvasA.Length);
 
         for (int y = 0; y < scaledH; y++)
         {
+            int srcRow = y * scaledW;
+
             for (int x = 0; x < scaledW; x++)
             {
                 float srcX = (x + 0.5f) / scale - 0.5f;
                 float srcY = (y + 0.5f) / scale - 0.5f;
-                scaled[y * scaledW + x] = SampleBilinear(
+
+                scaled[srcRow + x] = SampleBilinear(
                     pixels,
                     sourceWidth,
                     cropX,
@@ -208,29 +411,65 @@ public class DigitSegmenter : MonoBehaviour
             int srcRow = y * scaledW;
 
             for (int x = 0; x < scaledW; x++)
-                canvas[dstRow + x + offsetX] = scaled[srcRow + x];
+                canvasA[dstRow + x + offsetX] = scaled[srcRow + x];
         }
 
-        RecenterByMass(canvas);
+        RecenterByMass(canvasA, canvasB);
+
+        float[] current = canvasA;
+        float[] temp = canvasB;
 
         if (applyDilation)
-            canvas = Dilate(canvas);
+        {
+            Dilate(current, temp);
+            var swap = current;
+            current = temp;
+            temp = swap;
+        }
 
-        ApplyOrientation(ref canvas);
+        if (rotate90Clockwise)
+        {
+            Rotate90CW(current, temp);
+            var swap = current;
+            current = temp;
+            temp = swap;
+        }
+
+        if (rotate90CounterClockwise)
+        {
+            Rotate90CCW(current, temp);
+            var swap = current;
+            current = temp;
+            temp = swap;
+        }
+
+        if (flipHorizontal)
+        {
+            FlipHorizontal(current, temp);
+            var swap = current;
+            current = temp;
+            temp = swap;
+        }
+
+        if (flipVertical)
+        {
+            FlipVertical(current, temp);
+            var swap = current;
+            current = temp;
+            temp = swap;
+        }
 
         float[] output = new float[outputSize * outputSize];
         for (int i = 0; i < output.Length; i++)
-            output[i] = canvas[i] - 0.5f;
+            output[i] = current[i] - 0.5f;
 
         return output;
     }
 
     private float GetSourceValue(Color32 c)
     {
-        float v = c.a / 255f;
-        if (invertInput)
-            v = 1f - v;
-        return v;
+        float v = c.a * (1f / 255f);
+        return invertInput ? 1f - v : v;
     }
 
     private float SampleBilinear(
@@ -243,9 +482,9 @@ public class DigitSegmenter : MonoBehaviour
         float x,
         float y)
     {
-        int x0 = Mathf.Clamp(Mathf.FloorToInt(x), 0, cropW - 1);
+        int x0 = Mathf.Clamp((int)x, 0, cropW - 1);
         int x1 = Mathf.Clamp(x0 + 1, 0, cropW - 1);
-        int y0 = Mathf.Clamp(Mathf.FloorToInt(y), 0, cropH - 1);
+        int y0 = Mathf.Clamp((int)y, 0, cropH - 1);
         int y1 = Mathf.Clamp(y0 + 1, 0, cropH - 1);
 
         float tx = x - x0;
@@ -256,12 +495,12 @@ public class DigitSegmenter : MonoBehaviour
         float p01 = GetSourceValue(pixels[(cropY + y1) * sourceWidth + (cropX + x0)]);
         float p11 = GetSourceValue(pixels[(cropY + y1) * sourceWidth + (cropX + x1)]);
 
-        float a = Mathf.Lerp(p00, p10, tx);
-        float b = Mathf.Lerp(p01, p11, tx);
-        return Mathf.Lerp(a, b, ty);
+        float a = p00 + (p10 - p00) * tx;
+        float b = p01 + (p11 - p01) * tx;
+        return a + (b - a) * ty;
     }
 
-    private void RecenterByMass(float[] canvas)
+    private void RecenterByMass(float[] src, float[] dst)
     {
         float sum = 0f;
         float cx = 0f;
@@ -273,7 +512,7 @@ public class DigitSegmenter : MonoBehaviour
             int row = y * size;
             for (int x = 0; x < size; x++)
             {
-                float v = canvas[row + x];
+                float v = src[row + x];
                 sum += v;
                 cx += x * v;
                 cy += y * v;
@@ -286,34 +525,40 @@ public class DigitSegmenter : MonoBehaviour
         cx /= sum;
         cy /= sum;
 
-        int shiftX = Mathf.RoundToInt(size / 2f - cx);
-        int shiftY = Mathf.RoundToInt(size / 2f - cy);
+        int shiftX = Mathf.RoundToInt(size * 0.5f - cx);
+        int shiftY = Mathf.RoundToInt(size * 0.5f - cy);
 
-        float[] shifted = new float[size * size];
+        Array.Clear(dst, 0, dst.Length);
 
         for (int y = 0; y < size; y++)
         {
+            int dstRow = y * size;
+            int sy = y - shiftY;
+
+            if ((uint)sy >= (uint)size)
+                continue;
+
+            int srcRow = sy * size;
+
             for (int x = 0; x < size; x++)
             {
                 int sx = x - shiftX;
-                int sy = y - shiftY;
-
-                if ((uint)sx < (uint)size && (uint)sy < (uint)size)
-                    shifted[y * size + x] = canvas[sy * size + sx];
+                if ((uint)sx < (uint)size)
+                    dst[dstRow + x] = src[srcRow + sx];
             }
         }
 
-        for (int i = 0; i < canvas.Length; i++)
-            canvas[i] = shifted[i];
+        Array.Copy(dst, src, src.Length);
     }
 
-    private float[] Dilate(float[] src)
+    private void Dilate(float[] src, float[] dst)
     {
         int size = outputSize;
-        float[] dst = new float[size * size];
 
         for (int y = 0; y < size; y++)
         {
+            int row = y * size;
+
             for (int x = 0; x < size; x++)
             {
                 float maxVal = 0f;
@@ -323,76 +568,54 @@ public class DigitSegmenter : MonoBehaviour
                     int ny = y + oy;
                     if ((uint)ny >= (uint)size) continue;
 
+                    int nRow = ny * size;
+
                     for (int ox = -1; ox <= 1; ox++)
                     {
                         int nx = x + ox;
                         if ((uint)nx >= (uint)size) continue;
 
-                        float v = src[ny * size + nx];
+                        float v = src[nRow + nx];
                         if (v > maxVal)
                             maxVal = v;
                     }
                 }
 
-                dst[y * size + x] = maxVal;
+                dst[row + x] = maxVal;
             }
         }
-
-        return dst;
     }
 
-    private void ApplyOrientation(ref float[] canvas)
-    {
-        if (rotate90Clockwise)
-            canvas = Rotate90CW(canvas);
-
-        if (rotate90CounterClockwise)
-            canvas = Rotate90CCW(canvas);
-
-        if (flipHorizontal)
-            canvas = FlipHorizontal(canvas);
-
-        if (flipVertical)
-            canvas = FlipVertical(canvas);
-    }
-
-    private float[] Rotate90CW(float[] src)
+    private void Rotate90CW(float[] src, float[] dst)
     {
         int size = outputSize;
-        float[] dst = new float[size * size];
         for (int y = 0; y < size; y++)
             for (int x = 0; x < size; x++)
                 dst[y * size + x] = src[(size - 1 - x) * size + y];
-        return dst;
     }
 
-    private float[] Rotate90CCW(float[] src)
+    private void Rotate90CCW(float[] src, float[] dst)
     {
         int size = outputSize;
-        float[] dst = new float[size * size];
         for (int y = 0; y < size; y++)
             for (int x = 0; x < size; x++)
                 dst[y * size + x] = src[x * size + (size - 1 - y)];
-        return dst;
     }
 
-    private float[] FlipHorizontal(float[] src)
+    private void FlipHorizontal(float[] src, float[] dst)
     {
         int size = outputSize;
-        float[] dst = new float[size * size];
         for (int y = 0; y < size; y++)
         {
             int row = y * size;
             for (int x = 0; x < size; x++)
                 dst[row + x] = src[row + (size - 1 - x)];
         }
-        return dst;
     }
 
-    private float[] FlipVertical(float[] src)
+    private void FlipVertical(float[] src, float[] dst)
     {
         int size = outputSize;
-        float[] dst = new float[size * size];
         for (int y = 0; y < size; y++)
         {
             int srcRow = (size - 1 - y) * size;
@@ -400,7 +623,6 @@ public class DigitSegmenter : MonoBehaviour
             for (int x = 0; x < size; x++)
                 dst[dstRow + x] = src[srcRow + x];
         }
-        return dst;
     }
 
     public Texture2D CreateDebugTexture(float[] mnistPixels)

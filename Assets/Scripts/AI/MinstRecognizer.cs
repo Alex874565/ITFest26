@@ -6,8 +6,10 @@ using UnityEngine;
 public class MnistRecognizer : MonoBehaviour
 {
     [SerializeField] private ModelAsset modelAsset;
+    [SerializeField] private bool preferGpu = true;
 
-    private Worker worker;
+    private Worker _worker;
+    private BackendType _backendType;
 
     [Serializable]
     public struct DigitPrediction
@@ -29,86 +31,217 @@ public class MnistRecognizer : MonoBehaviour
     private const int ClassCount = 10;
     private const int PixelsPerDigit = InputWidth * InputHeight;
 
+    // Reused scratch buffers to reduce GC
+    private readonly float[] _logits = new float[ClassCount];
+    private readonly float[] _probabilities = new float[ClassCount];
+
     private void Awake()
     {
         Model model = ModelLoader.Load(modelAsset);
-        worker = new Worker(model, BackendType.GPUCompute);
+        _backendType = ChooseBackend();
+        _worker = new Worker(model, _backendType);
+    }
+
+    public void Warmup()
+    {
+        float[] dummy = new float[28 * 28];
+        PredictDigit(dummy);
+    }
+    
+    private BackendType ChooseBackend()
+    {
+#if UNITY_WEBGL && !UNITY_EDITOR
+        // WebGL-safe default
+        return BackendType.CPU;
+#else
+        if (!preferGpu)
+            return BackendType.CPU;
+
+        if (SystemInfo.supportsComputeShaders)
+            return BackendType.GPUCompute;
+
+        return BackendType.CPU;
+#endif
     }
 
     public int PredictDigit(float[] pixels28x28)
     {
-        List<DigitPrediction> predictions = PredictTopDigits(pixels28x28, 1);
-        return predictions.Count > 0 ? predictions[0].Digit : -1;
-    }
+        if (!TryValidateInput(pixels28x28))
+            return -1;
 
-    public List<DigitPrediction> PredictTopDigits(float[] pixels28x28, int topK = 3)
-    {
-        if (pixels28x28 == null || pixels28x28.Length != PixelsPerDigit)
-        {
-            Debug.LogError($"Expected {PixelsPerDigit} pixels, got {pixels28x28?.Length ?? 0}.");
-            return new List<DigitPrediction>();
-        }
+        using var input = new Tensor<float>(
+            new TensorShape(1, 1, InputHeight, InputWidth),
+            pixels28x28
+        );
 
-        using var input = new Tensor<float>(new TensorShape(1, 1, InputHeight, InputWidth), pixels28x28);
+        _worker.Schedule(input);
 
-        worker.Schedule(input);
-
-        var output = worker.PeekOutput() as Tensor<float>;
+        var output = _worker.PeekOutput() as Tensor<float>;
         if (output == null)
         {
             Debug.LogError("Model output is not Tensor<float>.");
-            return new List<DigitPrediction>();
+            return -1;
         }
 
         using var cpuOutput = output.ReadbackAndClone();
 
-        float[] logits = new float[ClassCount];
-        for (int i = 0; i < ClassCount; i++)
-            logits[i] = cpuOutput[i];
+        int bestDigit = 0;
+        float bestLogit = cpuOutput[0];
 
-        float[] probabilities = Softmax(logits);
+        for (int i = 1; i < ClassCount; i++)
+        {
+            float logit = cpuOutput[i];
+            if (logit > bestLogit)
+            {
+                bestLogit = logit;
+                bestDigit = i;
+            }
+        }
 
-        List<DigitPrediction> all = new List<DigitPrediction>(ClassCount);
-        for (int i = 0; i < ClassCount; i++)
-            all.Add(new DigitPrediction(i, logits[i], probabilities[i]));
-
-        all.Sort((a, b) => b.Confidence.CompareTo(a.Confidence));
-
-        if (topK < all.Count)
-            all.RemoveRange(topK, all.Count - topK);
-
-        return all;
+        return bestDigit;
     }
 
-    private float[] Softmax(float[] logits)
+    public void PredictTopDigitsBatchNonAlloc(
+    List<DigitSegmenter.DigitCandidate> candidates,
+    List<List<DigitPrediction>> results,
+    int topK = 3)
+{
+    results.Clear();
+
+    if (candidates == null || candidates.Count == 0)
+        return;
+
+    topK = Mathf.Clamp(topK, 1, ClassCount);
+
+    int batch = candidates.Count;
+    float[] batchedInput = new float[batch * PixelsPerDigit];
+
+    for (int i = 0; i < batch; i++)
     {
-        float max = float.MinValue;
-        for (int i = 0; i < logits.Length; i++)
+        float[] src = candidates[i].mnistPixels;
+        if (src == null || src.Length != PixelsPerDigit)
         {
-            if (logits[i] > max)
-                max = logits[i];
+            Debug.LogError($"Candidate {i} does not have {PixelsPerDigit} pixels.");
+            results.Clear();
+            return;
+        }
+
+        Array.Copy(src, 0, batchedInput, i * PixelsPerDigit, PixelsPerDigit);
+    }
+
+    using var input = new Tensor<float>(
+        new TensorShape(batch, 1, InputHeight, InputWidth),
+        batchedInput
+    );
+
+    _worker.Schedule(input);
+
+    var output = _worker.PeekOutput() as Tensor<float>;
+    if (output == null)
+    {
+        Debug.LogError("Model output is not Tensor<float>.");
+        return;
+    }
+
+    using var cpuOutput = output.ReadbackAndClone();
+
+    for (int b = 0; b < batch; b++)
+    {
+        List<DigitPrediction> perDigit = new List<DigitPrediction>(topK);
+
+        int baseIndex = b * ClassCount;
+        float max = float.MinValue;
+
+        for (int i = 0; i < ClassCount; i++)
+        {
+            float logit = cpuOutput[baseIndex + i];
+            _logits[i] = logit;
+            if (logit > max)
+                max = logit;
         }
 
         float sum = 0f;
-        float[] exps = new float[logits.Length];
-
-        for (int i = 0; i < logits.Length; i++)
+        for (int i = 0; i < ClassCount; i++)
         {
-            exps[i] = Mathf.Exp(logits[i] - max);
-            sum += exps[i];
+            float p = Mathf.Exp(_logits[i] - max);
+            _probabilities[i] = p;
+            sum += p;
         }
 
-        if (sum <= 0f)
-            return new float[logits.Length];
+        if (sum > 0f)
+        {
+            float invSum = 1f / sum;
+            for (int i = 0; i < ClassCount; i++)
+                _probabilities[i] *= invSum;
 
-        for (int i = 0; i < exps.Length; i++)
-            exps[i] /= sum;
+            for (int rank = 0; rank < topK; rank++)
+            {
+                int bestDigit = -1;
+                float bestConfidence = float.NegativeInfinity;
 
-        return exps;
+                for (int i = 0; i < ClassCount; i++)
+                {
+                    float confidence = _probabilities[i];
+                    bool alreadyPicked = false;
+
+                    for (int j = 0; j < perDigit.Count; j++)
+                    {
+                        if (perDigit[j].Digit == i)
+                        {
+                            alreadyPicked = true;
+                            break;
+                        }
+                    }
+
+                    if (!alreadyPicked && confidence > bestConfidence)
+                    {
+                        bestConfidence = confidence;
+                        bestDigit = i;
+                    }
+                }
+
+                if (bestDigit < 0)
+                    break;
+
+                perDigit.Add(new DigitPrediction(
+                    bestDigit,
+                    _logits[bestDigit],
+                    _probabilities[bestDigit]
+                ));
+            }
+        }
+
+        results.Add(perDigit);
     }
+}
+
+    private bool ContainsDigit(List<DigitPrediction> results, int digit)
+    {
+        for (int i = 0; i < results.Count; i++)
+        {
+            if (results[i].Digit == digit)
+                return true;
+        }
+
+        return false;
+    }
+
+    private bool TryValidateInput(float[] pixels28x28)
+    {
+        if (pixels28x28 == null || pixels28x28.Length != PixelsPerDigit)
+        {
+            Debug.LogError($"Expected {PixelsPerDigit} pixels, got {pixels28x28?.Length ?? 0}.");
+            return false;
+        }
+
+        return true;
+    }
+
+    public BackendType GetBackendType() => _backendType;
 
     private void OnDestroy()
     {
-        worker?.Dispose();
+        _worker?.Dispose();
+        _worker = null;
     }
 }

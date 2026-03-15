@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System;
 
 public class CosmeticItemUI : MonoBehaviour
 {
@@ -17,10 +18,16 @@ public class CosmeticItemUI : MonoBehaviour
     [SerializeField] private Sprite equipSprite;
     [SerializeField] private Sprite equippedSprite;
 
+    public event Action<int> OnUpdateMoney;
+    
     private CosmeticState state;
+    private UnlockableData data;
+    private int index;
     private int price;
 
     private CosmeticRow row;
+    
+    private PlayerManager playerManager;
 
     private void Awake()
     {
@@ -29,18 +36,21 @@ public class CosmeticItemUI : MonoBehaviour
 
         button.onClick.AddListener(OnClicked);
     }
-
-    public void Initialize(int cosmeticPrice, bool owned, bool equipped)
+    public void Initialize(UnlockableData data, int index)
     {
-        price = cosmeticPrice;
-
-        if (!owned)
-            state = CosmeticState.Locked;
-        else if (equipped)
+        playerManager = ServiceLocator.Instance.PlayerManager;
+        this.data = data;
+        this.index = index;
+        
+        price = data.Cost;
+        
+        if(playerManager.IsItemEquipped(data.Type, index))
             state = CosmeticState.Equipped;
-        else
+        else if(playerManager.IsItemOwned(data.Type, index))
             state = CosmeticState.Owned;
-
+        else
+            state = CosmeticState.Locked;
+        
         priceText.text = price.ToString();
 
         UpdateVisual();
@@ -64,10 +74,11 @@ public class CosmeticItemUI : MonoBehaviour
     {
         var player = ServiceLocator.Instance.PlayerManager;
 
-        // if (player.Money < price)
-        //     return;
-
+        if (!player.CanAffordItem(data.Type, index)) return;
+        
+        player.UnlockItem(data.Type, index);
         player.SetMoney ( player.Money - price);
+        OnUpdateMoney?.Invoke(player.Money);
         state = CosmeticState.Owned;
 
         UpdateVisual();
@@ -76,6 +87,7 @@ public class CosmeticItemUI : MonoBehaviour
     public void SetEquipped()
     {
         state = CosmeticState.Equipped;
+        playerManager.EquipUnlockable(data.Type, index);
         UpdateVisual();
     }
 

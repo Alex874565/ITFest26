@@ -1,32 +1,36 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
-using DG.Tweening;
 using UnityEngine.UI;
+using DG.Tweening;
 
 public class UIButtonAnimation : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
-    private Tween currentTween;
-    private Vector3 originalScale;
-
     [SerializeField] private float hoverMultiplier = 1.08f;
     [SerializeField] private float duration = 0.2f;
+    [SerializeField] private Vector3 originalScale = Vector3.one;
+
+    private Tween currentTween;
+    private Button button;
 
     private void Awake()
     {
-        originalScale = transform.localScale;
+        button = GetComponent<Button>();
+    }
+
+    public void SetBaseScale(Vector3 scale)
+    {
+        originalScale = scale;
     }
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        Button button = GetComponent<Button>();
         if (button != null && !button.interactable)
             return;
 
         currentTween?.Kill();
 
         currentTween = transform.DOScale(originalScale * hoverMultiplier, duration)
-                                .SetEase(Ease.OutBack)
-                                .SetUpdate(true);
+            .SetEase(Ease.OutBack);
     }
 
     public void OnPointerExit(PointerEventData eventData)
@@ -34,7 +38,12 @@ public class UIButtonAnimation : MonoBehaviour, IPointerEnterHandler, IPointerEx
         currentTween?.Kill();
 
         currentTween = transform.DOScale(originalScale, duration)
-                                .SetEase(Ease.OutCubic)
-                                .SetUpdate(true);
+            .SetEase(Ease.OutCubic);
+    }
+
+    private void OnDisable()
+    {
+        currentTween?.Kill();
+        transform.localScale = originalScale;
     }
 }

@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System;
 using UnityEngine.Serialization;
+using System.Collections.Generic;
 
 [RequireComponent(typeof(EnemyMovementController))]
 public class EnemyController : MonoBehaviour, IReachPlayer, IDisappear
@@ -127,11 +128,36 @@ public class EnemyController : MonoBehaviour, IReachPlayer, IDisappear
                 break;
 
             case EquationType.Division:
-                y = UnityEngine.Random.Range(1, max + 1);   // divisor
-                answer = UnityEngine.Random.Range(1, max/y); // quotient
-                x = y * answer; // guarantees whole division
+            {
+                List<(int x, int y, int answer)> goodOptions = new List<(int, int, int)>();
+                List<(int x, int y, int answer)> boringOptions = new List<(int, int, int)>();
+
+                for (int divisor = 1; divisor <= max; divisor++)
+                {
+                    for (int quotient = 1; quotient <= max; quotient++)
+                    {
+                        int dividend = divisor * quotient;
+                        if (dividend > max) continue;
+
+                        var option = (dividend, divisor, quotient);
+
+                        if (divisor == 1 || dividend == divisor || quotient == 1)
+                            boringOptions.Add(option);
+                        else
+                            goodOptions.Add(option);
+                    }
+                }
+
+                bool useBoring = goodOptions.Count == 0 || UnityEngine.Random.value < 0.1f; // 10% chance
+                var pool = useBoring ? boringOptions : goodOptions;
+
+                var choice = pool[UnityEngine.Random.Range(0, pool.Count)];
+                x = choice.x;
+                y = choice.y;
+                answer = choice.answer;
                 equation = $"{x} / {y}";
                 break;
+            }
 
             default:
                 return null;

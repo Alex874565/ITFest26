@@ -21,7 +21,7 @@ public class HubUI : MonoBehaviour
         {
             stagger.CloseMenu(() =>
             {
-                SceneManager.LoadScene("GameScene");
+                SceneManager.LoadScene("Game");
             });
         });
 

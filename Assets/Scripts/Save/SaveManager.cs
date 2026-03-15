@@ -6,7 +6,7 @@ public class SaveManager : MonoBehaviour
 {
     public static SaveManager Instance { get; private set; }
 
-    public SaveData SaveData;
+    private SaveData SaveData;
     
     public int Money => SaveData.Money;
     public Dictionary<EquationType, int> EquationLevels => new Dictionary<EquationType, int>
@@ -32,7 +32,7 @@ public class SaveManager : MonoBehaviour
             for(int i = 0; i < SaveData.Unlocks.Count; i++)
             {
                 List<CosmeticState> states = new List<CosmeticState>();
-                foreach (int state in SaveData.Unlocks[i])
+                foreach (int state in SaveData.Unlocks[i].Values)
                 {
                     states.Add((CosmeticState)state);
                 }

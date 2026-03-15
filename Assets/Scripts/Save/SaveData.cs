@@ -8,7 +8,7 @@ public class SaveData
     public List<int> EquationLevels;
     public List<int> EquationHighScores;
     public List<bool> SelectedEquations;
-    public List<List<int>> Unlocks;
+    public List<IntList> Unlocks;
     
     public SaveData(int money, Dictionary<EquationType, int> equationLevels, Dictionary<EquationType, int> equationHighScores, List<EquationType> selectedEquations, Dictionary<UnlockableType, List<CosmeticState>> unlocks)
     {
@@ -24,7 +24,7 @@ public class SaveData
                 SelectedEquations.Add(false);
         }
 
-        Unlocks = new List<List<int>>();
+        Unlocks = new List<IntList>();
         foreach (UnlockableType type in Enum.GetValues(typeof(UnlockableType)))
         {
             List<int> states = new List<int>();
@@ -32,7 +32,7 @@ public class SaveData
             {
                 states.Add((int)state);
             }
-            Unlocks.Add(states);
+            Unlocks.Add(new IntList { Values = states });
         }
     }
     
@@ -42,16 +42,16 @@ public class SaveData
         EquationLevels = new List<int> { 0, 0, 0, 0 };
         EquationHighScores = new List<int> { 0, 0, 0, 0 };
         SelectedEquations = new List<bool> { false, false, false, false };
-        Unlocks = new List<List<int>>();
+        Unlocks = new List<IntList>();
         foreach (UnlockableType type in Enum.GetValues(typeof(UnlockableType)))
         {
             List<int> states = new List<int>();
             foreach (CosmeticState state in Enum.GetValues(typeof(CosmeticState)))
             {
-                states.Add(0);
+                states.Add(-1);
             }
             states[0] = 1;
-            Unlocks.Add(states);
+            Unlocks.Add(new IntList { Values = states });
         }
     }
 

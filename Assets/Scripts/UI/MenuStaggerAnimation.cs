@@ -48,29 +48,17 @@ public class MenuStaggerAnimation : MonoBehaviour
         {
             RectTransform button = buttons[i];
             button.localScale = Vector3.zero;
-            
+
+            var hover = button.GetComponent<UIButtonAnimation>();
+            if (hover != null)
+                hover.SetBaseScale(Vector3.one);
+
             float appearanceTime = i * staggerDelay;
 
-            // ONLY play sound if a clip is actually assigned in the Inspector
-            // if (popSound != null && sfxSource != null)
-            // {
-            //     currentSequence.InsertCallback(appearanceTime, () => 
-            //     {
-            //         sfxSource.PlayOneShot(popSound, volume);
-            //     });
-            // }
-
-            Tween scaleTween = button.DOScale(1f, duration)
+            Tween scaleTween = button.DOScale(Vector3.one, duration)
                 .SetEase(Ease.OutBack);
 
             currentSequence.Insert(appearanceTime, scaleTween);
-
-            // Callbacks for Money/Time
-            // if (button == moneyElement && onMoneyShown != null)
-            //     scaleTween.OnComplete(() => onMoneyShown.Invoke());
-
-            // if (button == timeElement && onTimeShown != null)
-            //     scaleTween.OnComplete(() => onTimeShown.Invoke());
         }
     }
 

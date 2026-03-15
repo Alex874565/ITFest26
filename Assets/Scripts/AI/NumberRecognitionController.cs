@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Serialization;
-using UnityEngine.UI;
 
 public class NumberRecognitionController : MonoBehaviour
 {
@@ -20,31 +19,37 @@ public class NumberRecognitionController : MonoBehaviour
     [SerializeField] private DigitSegmenter segmenter;
     [SerializeField] private MnistRecognizer recognizer;
 
-    [Header("Debug - Digit Preview")]
-    [SerializeField] private RawImage debugDigit;
-    [SerializeField] private bool createDebugTexture = false;
-    [SerializeField] private bool onlyShowFirstDebugDigit = true;
-
     [Header("Performance")]
     [SerializeField] private bool skipIfBusy = true;
-    [SerializeField] private int predictOneEveryNFrames = 0;
     [SerializeField] private int maxWholeNumberCandidates = 16;
+    [SerializeField] private int segmentationWorkBudgetPerFrame = 20000;
+    [SerializeField] private float minRecognitionInterval = 0.05f;
+
+    [Header("Analysis Downsampling")]
+    [SerializeField] private bool useDownsampledAnalysis = true;
+    [SerializeField] private int maxAnalysisSizeNative = 512;
+    [SerializeField] private int maxAnalysisSizeWebGL = 256;
 
     [Header("Whole Number Assist")]
     [SerializeField] private bool enableAssist = true;
     [SerializeField, Range(1, 4)] private int assistTopKPerDigit = 2;
-    [SerializeField] private float assistMaxRelevantDistance = 8f;
-    [SerializeField] [Range(0f, 1f)] private float confidenceAdvantageToIgnoreDistance = 0.08f;
 
+    private bool _pendingRecognition;
+    
     public event Action<int> OnNumberRecognized;
     public event Action OnNumberNotRecognized;
 
     private CancellationTokenSource _segmentationCts;
     private Coroutine _recognizeRoutine;
     private bool _isBusy;
-    private Texture2D _debugTexture;
+    private float _lastRecognizeTime = -999f;
 
     private PlayerController _playerController;
+
+    private readonly List<DigitSegmenter.DigitCandidate> _segmentedDigits = new();
+    private readonly List<List<MnistRecognizer.DigitPrediction>> _digitPredictions = new();
+
+    private Color32[] _analysisPixelsBuffer;
 
     private class WholeNumberCandidate
     {
@@ -62,16 +67,25 @@ public class NumberRecognitionController : MonoBehaviour
             _playerController = FindFirstObjectByType<PlayerController>();
     }
 
-    private void OnEnable()
+    private IEnumerator Start()
     {
-        if (drawer != null)
-            drawer.OnTimeToEvaluatePassed += RecognizeNumber;
+#if UNITY_WEBGL && !UNITY_EDITOR
+    segmentationWorkBudgetPerFrame = 3000;
+    minRecognitionInterval = 0.2f;
+#else
+        segmentationWorkBudgetPerFrame = 25000;
+        minRecognitionInterval = 0.05f;
+#endif
+
+        yield return null;
+        yield return null;
+
+        if (recognizer != null)
+            recognizer.Warmup();
     }
 
     private void OnDisable()
     {
-        if (drawer != null)
-            drawer.OnTimeToEvaluatePassed -= RecognizeNumber;
 
         if (_recognizeRoutine != null)
         {
@@ -79,23 +93,31 @@ public class NumberRecognitionController : MonoBehaviour
             _recognizeRoutine = null;
         }
 
+#if !(UNITY_WEBGL && !UNITY_EDITOR)
         _segmentationCts?.Cancel();
         _segmentationCts?.Dispose();
         _segmentationCts = null;
-
-        if (_debugTexture != null)
-        {
-            Destroy(_debugTexture);
-            _debugTexture = null;
-        }
+#endif
 
         _isBusy = false;
     }
 
-    public void RecognizeNumber()
+    public bool RecognizeNumber()
     {
         if (_isBusy && skipIfBusy)
-            return;
+        {
+            _pendingRecognition = true;
+            return false;
+        }
+
+        if (Time.unscaledTime - _lastRecognizeTime < minRecognitionInterval)
+        {
+            _pendingRecognition = true;
+            return false;
+        }
+
+        _pendingRecognition = false;
+        _lastRecognizeTime = Time.unscaledTime;
 
         if (_recognizeRoutine != null)
         {
@@ -104,36 +126,61 @@ public class NumberRecognitionController : MonoBehaviour
         }
 
         _recognizeRoutine = StartCoroutine(RecognizeNumberCoroutine());
+        return true;
     }
 
     private IEnumerator RecognizeNumberCoroutine()
     {
         _isBusy = true;
+        _segmentedDigits.Clear();
+        _digitPredictions.Clear();
 
+        Texture2D texture = drawer != null ? drawer.DrawTexture : null;
+        if (texture == null)
+        {
+            if (drawer != null)
+                drawer.Clear();
+            FinishRecognition();
+            yield break;
+        }
+
+        Color32[] sourcePixels = texture.GetPixels32();
+        int sourceWidth = texture.width;
+        int sourceHeight = texture.height;
+
+        PrepareAnalysisPixels(
+            sourcePixels,
+            sourceWidth,
+            sourceHeight,
+            out Color32[] analysisPixels,
+            out int analysisWidth,
+            out int analysisHeight
+        );
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+        yield return segmenter.ExtractDigitsFromPixelsCoroutine(
+            analysisPixels,
+            analysisWidth,
+            analysisHeight,
+            _segmentedDigits,
+            segmentationWorkBudgetPerFrame
+        );
+#else
         _segmentationCts?.Cancel();
         _segmentationCts?.Dispose();
         _segmentationCts = new CancellationTokenSource();
         CancellationToken token = _segmentationCts.Token;
 
-        Texture2D texture = drawer != null ? drawer.DrawTexture : null;
-        if (texture == null)
-        {
-            FinishRecognition();
-            yield break;
-        }
-
-        int width = texture.width;
-        int height = texture.height;
-        Color32[] pixels = texture.GetPixels32();
-
         Task<List<DigitSegmenter.DigitCandidate>> segmentationTask =
-            Task.Run(() => segmenter.ExtractDigitsFromPixels(pixels, width, height), token);
+            Task.Run(() => segmenter.ExtractDigitsFromPixelsThreadSafe(analysisPixels, analysisWidth, analysisHeight), token);
 
         while (!segmentationTask.IsCompleted)
             yield return null;
 
         if (token.IsCancellationRequested)
         {
+            if (drawer != null)
+                drawer.Clear();
             FinishRecognition();
             yield break;
         }
@@ -141,59 +188,56 @@ public class NumberRecognitionController : MonoBehaviour
         if (segmentationTask.IsFaulted)
         {
             Debug.LogException(segmentationTask.Exception);
+            if (drawer != null)
+                drawer.Clear();
             FinishRecognition();
             yield break;
         }
 
-        List<DigitSegmenter.DigitCandidate> candidates = segmentationTask.Result;
+        _segmentedDigits.AddRange(segmentationTask.Result);
+#endif
 
-        if (candidates == null || candidates.Count == 0)
+        if (_segmentedDigits.Count == 0)
         {
             OnNumberNotRecognized?.Invoke();
+            if (drawer != null)
+                drawer.Clear();
             FinishRecognition();
             yield break;
         }
 
         int topK = Mathf.Max(1, assistTopKPerDigit);
-        List<List<MnistRecognizer.DigitPrediction>> digitPredictions =
-            new List<List<MnistRecognizer.DigitPrediction>>(candidates.Count);
 
-        for (int i = 0; i < candidates.Count; i++)
+        recognizer.PredictTopDigitsBatchNonAlloc(_segmentedDigits, _digitPredictions, topK);
+
+        if (_digitPredictions.Count != _segmentedDigits.Count)
         {
-            List<MnistRecognizer.DigitPrediction> predictions =
-                recognizer.PredictTopDigits(candidates[i].mnistPixels, topK);
+            OnNumberNotRecognized?.Invoke();
+            if (drawer != null)
+                drawer.Clear();
+            FinishRecognition();
+            yield break;
+        }
 
-            if (predictions == null || predictions.Count == 0)
+        for (int i = 0; i < _digitPredictions.Count; i++)
+        {
+            if (_digitPredictions[i] == null || _digitPredictions[i].Count == 0)
             {
                 OnNumberNotRecognized?.Invoke();
+                if (drawer != null)
+                    drawer.Clear();
                 FinishRecognition();
                 yield break;
             }
-
-            digitPredictions.Add(predictions);
-
-            if (createDebugTexture && debugDigit != null && (!onlyShowFirstDebugDigit || i == 0))
-            {
-                if (_debugTexture != null)
-                {
-                    Destroy(_debugTexture);
-                    _debugTexture = null;
-                }
-
-                _debugTexture = segmenter.CreateDebugTexture(candidates[i].mnistPixels);
-                debugDigit.texture = _debugTexture;
-            }
-
-            int framesToWait = Mathf.Max(0, predictOneEveryNFrames);
-            for (int f = 0; f < framesToWait; f++)
-                yield return null;
         }
 
-        WholeNumberCandidate chosen = ChooseWholeNumberWithAssist(digitPredictions);
+        WholeNumberCandidate chosen = ChooseWholeNumberWithAssist(_digitPredictions);
 
         if (chosen == null)
         {
             OnNumberNotRecognized?.Invoke();
+            if (drawer != null)
+                drawer.Clear();
             FinishRecognition();
             yield break;
         }
@@ -202,11 +246,75 @@ public class NumberRecognitionController : MonoBehaviour
         bool isCorrect = chosen.HelpsEnemy;
 
         if (drawer != null)
-            drawer.PlayRecognizedNumberPop(recognizedNumberRect, isCorrect, recognizedNumberCanvasGroup, tmpText: recognizedNumberText);
+        {
+            drawer.PlayRecognizedNumberPop(
+                recognizedNumberRect,
+                isCorrect,
+                recognizedNumberCanvasGroup,
+                tmpText: recognizedNumberText
+            );
+        }
 
         OnNumberRecognized?.Invoke(chosen.NumberValue);
-
+        if (drawer != null)
+            drawer.Clear();
         FinishRecognition();
+    }
+
+    private void PrepareAnalysisPixels(
+        Color32[] sourcePixels,
+        int sourceWidth,
+        int sourceHeight,
+        out Color32[] analysisPixels,
+        out int analysisWidth,
+        out int analysisHeight)
+    {
+        int maxSize =
+#if UNITY_WEBGL && !UNITY_EDITOR
+            maxAnalysisSizeWebGL;
+#else
+            maxAnalysisSizeNative;
+#endif
+
+        if (!useDownsampledAnalysis || maxSize <= 0)
+        {
+            analysisPixels = sourcePixels;
+            analysisWidth = sourceWidth;
+            analysisHeight = sourceHeight;
+            return;
+        }
+
+        int longestSide = Mathf.Max(sourceWidth, sourceHeight);
+        if (longestSide <= maxSize)
+        {
+            analysisPixels = sourcePixels;
+            analysisWidth = sourceWidth;
+            analysisHeight = sourceHeight;
+            return;
+        }
+
+        float scale = maxSize / (float)longestSide;
+        analysisWidth = Mathf.Max(1, Mathf.RoundToInt(sourceWidth * scale));
+        analysisHeight = Mathf.Max(1, Mathf.RoundToInt(sourceHeight * scale));
+
+        int dstLen = analysisWidth * analysisHeight;
+        if (_analysisPixelsBuffer == null || _analysisPixelsBuffer.Length != dstLen)
+            _analysisPixelsBuffer = new Color32[dstLen];
+
+        for (int y = 0; y < analysisHeight; y++)
+        {
+            int srcY = Mathf.Min(sourceHeight - 1, Mathf.FloorToInt((y + 0.5f) / scale));
+            int dstRow = y * analysisWidth;
+            int srcRow = srcY * sourceWidth;
+
+            for (int x = 0; x < analysisWidth; x++)
+            {
+                int srcX = Mathf.Min(sourceWidth - 1, Mathf.FloorToInt((x + 0.5f) / scale));
+                _analysisPixelsBuffer[dstRow + x] = sourcePixels[srcRow + srcX];
+            }
+        }
+
+        analysisPixels = _analysisPixelsBuffer;
     }
 
     private WholeNumberCandidate ChooseWholeNumberWithAssist(List<List<MnistRecognizer.DigitPrediction>> digitPredictions)
@@ -221,7 +329,7 @@ public class NumberRecognitionController : MonoBehaviour
         if (!enableAssist || _playerController == null || candidates.Count == 1)
             return topPath;
 
-        List<WholeNumberCandidate> usefulCandidates = new List<WholeNumberCandidate>(candidates.Count);
+        List<WholeNumberCandidate> usefulCandidates = new(candidates.Count);
 
         for (int i = 0; i < candidates.Count; i++)
         {
@@ -246,12 +354,10 @@ public class NumberRecognitionController : MonoBehaviour
         usefulCandidates.Sort((a, b) =>
         {
             int distanceCompare = a.ClosestDistance.CompareTo(b.ClosestDistance);
-            if (distanceCompare != 0)
-                return distanceCompare;
+            if (distanceCompare != 0) return distanceCompare;
 
             int confidenceCompare = b.CombinedConfidence.CompareTo(a.CombinedConfidence);
-            if (confidenceCompare != 0)
-                return confidenceCompare;
+            if (confidenceCompare != 0) return confidenceCompare;
 
             return string.CompareOrdinal(a.NumberString, b.NumberString);
         });
@@ -261,8 +367,8 @@ public class NumberRecognitionController : MonoBehaviour
 
     private List<WholeNumberCandidate> BuildWholeNumberCandidates(List<List<MnistRecognizer.DigitPrediction>> digitPredictions)
     {
-        List<WholeNumberCandidate> results = new List<WholeNumberCandidate>(maxWholeNumberCandidates);
-        StringBuilder currentDigits = new StringBuilder(digitPredictions.Count);
+        List<WholeNumberCandidate> results = new(maxWholeNumberCandidates);
+        StringBuilder currentDigits = new(digitPredictions.Count);
 
         BuildWholeNumberCandidatesRecursive(
             digitPredictions,
@@ -318,8 +424,7 @@ public class NumberRecognitionController : MonoBehaviour
 
         for (int i = 0; i < predictions.Count; i++)
         {
-            MnistRecognizer.DigitPrediction prediction = predictions[i];
-
+            var prediction = predictions[i];
             currentDigits.Append(prediction.Digit);
 
             long nextValue = currentValue * 10L + prediction.Digit;
@@ -343,5 +448,11 @@ public class NumberRecognitionController : MonoBehaviour
     {
         _isBusy = false;
         _recognizeRoutine = null;
+
+        if (_pendingRecognition)
+        {
+            _pendingRecognition = false;
+            RecognizeNumber();
+        }
     }
 }
