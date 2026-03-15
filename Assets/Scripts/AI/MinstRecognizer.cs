@@ -113,48 +113,39 @@ public class MnistRecognizer : MonoBehaviour
 
     topK = Mathf.Clamp(topK, 1, ClassCount);
 
-    int batch = candidates.Count;
-    float[] batchedInput = new float[batch * PixelsPerDigit];
-
-    for (int i = 0; i < batch; i++)
+    for (int b = 0; b < candidates.Count; b++)
     {
-        float[] src = candidates[i].mnistPixels;
+        float[] src = candidates[b].mnistPixels;
         if (src == null || src.Length != PixelsPerDigit)
         {
-            Debug.LogError($"Candidate {i} does not have {PixelsPerDigit} pixels.");
+            Debug.LogError($"Candidate {b} does not have {PixelsPerDigit} pixels.");
             results.Clear();
             return;
         }
 
-        Array.Copy(src, 0, batchedInput, i * PixelsPerDigit, PixelsPerDigit);
-    }
+        using var input = new Tensor<float>(
+            new TensorShape(1, 1, InputHeight, InputWidth),
+            src
+        );
 
-    using var input = new Tensor<float>(
-        new TensorShape(batch, 1, InputHeight, InputWidth),
-        batchedInput
-    );
+        _worker.Schedule(input);
 
-    _worker.Schedule(input);
+        var output = _worker.PeekOutput() as Tensor<float>;
+        if (output == null)
+        {
+            Debug.LogError("Model output is not Tensor<float>.");
+            results.Clear();
+            return;
+        }
 
-    var output = _worker.PeekOutput() as Tensor<float>;
-    if (output == null)
-    {
-        Debug.LogError("Model output is not Tensor<float>.");
-        return;
-    }
+        using var cpuOutput = output.ReadbackAndClone();
 
-    using var cpuOutput = output.ReadbackAndClone();
-
-    for (int b = 0; b < batch; b++)
-    {
         List<DigitPrediction> perDigit = new List<DigitPrediction>(topK);
 
-        int baseIndex = b * ClassCount;
         float max = float.MinValue;
-
         for (int i = 0; i < ClassCount; i++)
         {
-            float logit = cpuOutput[baseIndex + i];
+            float logit = cpuOutput[i];
             _logits[i] = logit;
             if (logit > max)
                 max = logit;

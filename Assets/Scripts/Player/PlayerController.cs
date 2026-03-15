@@ -2,13 +2,13 @@
 using System;
 using System.Collections.Generic;
 
-[RequireComponent(typeof(PlayerVisualController))]
 public class PlayerController : MonoBehaviour
 {
     [SerializeField] private NumberRecognitionController numberRecognitionController;
     [SerializeField] private EnemySpawner enemySpawner;
     [SerializeField] private EquationsCategoriesDatabase equationsCategoriesDatabase;
-
+    [SerializeField] private PlayerVisualController visualController;
+    
     public event Action<int> OnScoreChanged;
     public event Action<Dictionary<EquationType, int>, int> OnDeathWithData;
     public event Action OnDeath;
@@ -78,7 +78,10 @@ public class PlayerController : MonoBehaviour
         }
 
         if (defeatedAny)
+        {
+            visualController.PlayHappyAnimation();
             _timeSinceEnemyDefeated = 0f;
+        }
     }
     public bool TryGetBestAssistDistance(int number, out float closestDistance)
     {
@@ -107,27 +110,46 @@ public class PlayerController : MonoBehaviour
         return foundMatch;
     }
     
+    private const int RecentAnswersCount = 3;
+
     private void ChangeDifficultyData(EquationType equationType, float answerTime)
     {
-        if (!_difficultyLevelsGameData.ContainsKey(equationType))
+        if (!_difficultyLevelsGameData.TryGetValue(equationType, out var gameData))
             return;
 
-        DifficultyLevelGameData gameData = _difficultyLevelsGameData[equationType];
+        var difficultyLevels = equationsCategoriesDatabase
+            .GetEquationCategoryData(equationType)
+            .DifficultyLevels;
+
+        if (gameData.Level < 0 || gameData.Level >= difficultyLevels.Count)
+            return;
+
         gameData.CorrectAnswers++;
 
-        gameData.AnswerTimeAverage =
-            ((gameData.AnswerTimeAverage * (gameData.CorrectAnswers - 1)) + answerTime)
-            / gameData.CorrectAnswers;
+        gameData.RecentAnswerTimes.Enqueue(answerTime);
 
-        DifficultyLevelStats difficultyLevelStats =
-            equationsCategoriesDatabase.GetEquationCategoryData(equationType).DifficultyLevels[gameData.Level];
+        while (gameData.RecentAnswerTimes.Count > RecentAnswersCount)
+            gameData.RecentAnswerTimes.Dequeue();
+
+        float total = 0f;
+        foreach (float time in gameData.RecentAnswerTimes)
+            total += time;
+
+        gameData.AnswerTimeAverage = total / gameData.RecentAnswerTimes.Count;
+
+        DifficultyLevelStats difficultyLevelStats = difficultyLevels[gameData.Level];
+        
+        Debug.Log($"Equation: {equationType}, Level: {gameData.Level}, Correct Answers: {gameData.CorrectAnswers}, Answer Time Average: {gameData.AnswerTimeAverage:F2}s, Required Correct Answers: {difficultyLevelStats.MinAnswers}, Required Time: {difficultyLevelStats.PassThreshold:F2}s");
 
         if (gameData.CorrectAnswers >= difficultyLevelStats.MinAnswers &&
             gameData.AnswerTimeAverage <= difficultyLevelStats.PassThreshold)
         {
-            gameData.Level++;
+            if (gameData.Level < difficultyLevels.Count - 1)
+                gameData.Level++;
+
             gameData.CorrectAnswers = 0;
-            gameData.AnswerTimeAverage = 0;
+            gameData.AnswerTimeAverage = 0f;
+            gameData.RecentAnswerTimes.Clear();
         }
 
         _difficultyLevelsGameData[equationType] = gameData;

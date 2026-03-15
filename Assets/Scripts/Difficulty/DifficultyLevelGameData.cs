@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System.Collections;
 
 public class DifficultyLevelGameData
 {
@@ -12,4 +13,6 @@ public class DifficultyLevelGameData
         CorrectAnswers = correctAnswers;
         AnswerTimeAverage = answerTimeAverage;
     }
+    
+    public Queue RecentAnswerTimes = new Queue();
 }

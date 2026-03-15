@@ -50,7 +50,10 @@ public class SaveData
             {
                 states.Add(-1);
             }
-            states[0] = 1;
+
+            if (type == UnlockableType.Background)
+                states[0] = (int)CosmeticState.Equipped;
+            
             Unlocks.Add(new IntList { Values = states });
         }
     }

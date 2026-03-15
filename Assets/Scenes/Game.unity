@@ -1140,8 +1140,9 @@ MonoBehaviour:
   minWidth: 10
   minHeight: 50
   minFillRatio: 0.02
-  maxHorizontalGap: 1
-  maxVerticalGap: 3
+  maxCandidates: 6
+  useBinaryClose: 1
+  useBinaryCloseOnWebGLOnly: 1
   outputSize: 28
   fittedDigitSize: 18
   padding: 2
@@ -1173,7 +1174,7 @@ MonoBehaviour:
   segmentationWorkBudgetPerFrame: 20000
   minRecognitionInterval: 0.05
   useDownsampledAnalysis: 1
-  maxAnalysisSizeNative: 256
+  maxAnalysisSizeNative: 512
   maxAnalysisSizeWebGL: 256
   enableAssist: 1
   assistTopKPerDigit: 2
@@ -3490,7 +3491,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e2da53a23717ec64d846d724b8d1dca8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  brushRadius: 9
+  brushRadius: 6
   spacing: 0.08
   opacity: 1
   hardness: 0.3

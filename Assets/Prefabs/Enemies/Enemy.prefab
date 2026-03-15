@@ -49,7 +49,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 626fdae177e9466780e201d9fda7dc96, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  preparationTime: 5
+  preparationTime: 3
   equationsCategoriesDatabase: {fileID: 11400000, guid: 1082533ab3193e24f8fc30e640a586d5, type: 2}
   visualController: {fileID: 9087960853086095000}
 --- !u!114 &7333889342549597684

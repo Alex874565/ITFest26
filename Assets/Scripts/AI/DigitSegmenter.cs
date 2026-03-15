@@ -6,18 +6,19 @@ using UnityEngine;
 public class DigitSegmenter : MonoBehaviour
 {
     [Header("Thresholding")]
-    [SerializeField] private float whiteThreshold = 0.1f;
+    [SerializeField] private float whiteThreshold = 0.08f;
     [SerializeField] private bool invertInput = false;
 
     [Header("Blob Filtering")]
-    [SerializeField] private int minBlobPixels = 20;
-    [SerializeField] private int minWidth = 3;
-    [SerializeField] private int minHeight = 6;
-    [SerializeField] private float minFillRatio = 0.02f;
+    [SerializeField] private int minBlobPixels = 12;
+    [SerializeField] private int minWidth = 2;
+    [SerializeField] private int minHeight = 4;
+    [SerializeField] private float minFillRatio = 0.015f;
+    [SerializeField] private int maxCandidates = 6;
 
-    [Header("Gap Tolerance")]
-    [SerializeField] private int maxHorizontalGap = 1;
-    [SerializeField] private int maxVerticalGap = 3;
+    [Header("Binary Cleanup")]
+    [SerializeField] private bool useBinaryClose = true;
+    [SerializeField] private bool useBinaryCloseOnWebGLOnly = true;
 
     [Header("MNIST / EMNIST Formatting")]
     [SerializeField] private int outputSize = 28;
@@ -40,17 +41,21 @@ public class DigitSegmenter : MonoBehaviour
     private sealed class Scratch
     {
         public bool[] foreground;
+        public bool[] tempBinary;
         public bool[] visited;
         public int[] queue;
 
-        public float[] canvasA;   // outputSize * outputSize
-        public float[] canvasB;   // outputSize * outputSize
-        public float[] scaled;    // resized crop temp
+        public float[] canvasA;
+        public float[] canvasB;
+        public float[] scaled;
 
         public void EnsurePixelBuffers(int pixelCount)
         {
             if (foreground == null || foreground.Length < pixelCount)
                 foreground = new bool[pixelCount];
+
+            if (tempBinary == null || tempBinary.Length < pixelCount)
+                tempBinary = new bool[pixelCount];
 
             if (visited == null || visited.Length < pixelCount)
                 visited = new bool[pixelCount];
@@ -77,7 +82,6 @@ public class DigitSegmenter : MonoBehaviour
         }
     }
 
-    // Main-thread reusable scratch for sync / coroutine use.
     private readonly Scratch _mainScratch = new Scratch();
 
     public List<DigitCandidate> ExtractDigits(Texture2D source)
@@ -92,7 +96,6 @@ public class DigitSegmenter : MonoBehaviour
         return results;
     }
 
-    // Thread-safe entry point for worker thread usage.
     public List<DigitCandidate> ExtractDigitsFromPixelsThreadSafe(Color32[] pixels, int width, int height)
     {
         var results = new List<DigitCandidate>(8);
@@ -101,7 +104,6 @@ public class DigitSegmenter : MonoBehaviour
         return results;
     }
 
-    // WebGL-safe / smooth path
     public IEnumerator ExtractDigitsFromPixelsCoroutine(
         Color32[] pixels,
         int width,
@@ -116,6 +118,7 @@ public class DigitSegmenter : MonoBehaviour
         _mainScratch.EnsureCanvasBuffers(outputSize);
 
         bool[] foreground = _mainScratch.foreground;
+        bool[] tempBinary = _mainScratch.tempBinary;
         bool[] visited = _mainScratch.visited;
         int[] queue = _mainScratch.queue;
 
@@ -123,10 +126,26 @@ public class DigitSegmenter : MonoBehaviour
 
         for (int i = 0; i < pixelCount; i++)
         {
-            float v = GetSourceValue(pixels[i]);
-            foreground[i] = v >= whiteThreshold;
+            foreground[i] = GetSourceValue(pixels[i]) >= whiteThreshold;
             visited[i] = false;
 
+            if (++work >= workBudgetPerYield)
+            {
+                work = 0;
+                yield return null;
+            }
+        }
+
+        if (ShouldUseBinaryClose())
+        {
+            BinaryDilate4(foreground, tempBinary, width, height);
+            if (++work >= workBudgetPerYield)
+            {
+                work = 0;
+                yield return null;
+            }
+
+            BinaryErode4(tempBinary, foreground, width, height);
             if (++work >= workBudgetPerYield)
             {
                 work = 0;
@@ -169,31 +188,10 @@ public class DigitSegmenter : MonoBehaviour
                     if (py < minY) minY = py;
                     if (py > maxY) maxY = py;
 
-                    int yMin = py - maxVerticalGap;
-                    int yMax = py + maxVerticalGap;
-                    int xMin = px - maxHorizontalGap;
-                    int xMax = px + maxHorizontalGap;
-
-                    for (int ny = yMin; ny <= yMax; ny++)
-                    {
-                        if ((uint)ny >= (uint)height)
-                            continue;
-
-                        int nRow = ny * width;
-
-                        for (int nx = xMin; nx <= xMax; nx++)
-                        {
-                            if ((nx == px && ny == py) || (uint)nx >= (uint)width)
-                                continue;
-
-                            int nIdx = nRow + nx;
-                            if (visited[nIdx] || !foreground[nIdx])
-                                continue;
-
-                            visited[nIdx] = true;
-                            queue[tail++] = nIdx;
-                        }
-                    }
+                    TryEnqueue(px - 1, py, width, height, foreground, visited, queue, ref tail);
+                    TryEnqueue(px + 1, py, width, height, foreground, visited, queue, ref tail);
+                    TryEnqueue(px, py - 1, width, height, foreground, visited, queue, ref tail);
+                    TryEnqueue(px, py + 1, width, height, foreground, visited, queue, ref tail);
 
                     if (++work >= workBudgetPerYield)
                     {
@@ -202,21 +200,10 @@ public class DigitSegmenter : MonoBehaviour
                     }
                 }
 
-                int blobWidth = maxX - minX + 1;
-                int blobHeight = maxY - minY + 1;
-                int area = blobWidth * blobHeight;
-
-                if (blobCount < minBlobPixels)
+                if (!PassesBlobFilter(blobCount, minX, maxX, minY, maxY))
                     continue;
 
-                if (blobWidth < minWidth || blobHeight < minHeight)
-                    continue;
-
-                float fillRatio = blobCount / (float)area;
-                if (fillRatio < minFillRatio)
-                    continue;
-
-                RectInt bounds = new RectInt(minX, minY, blobWidth, blobHeight);
+                RectInt bounds = new RectInt(minX, minY, maxX - minX + 1, maxY - minY + 1);
                 float[] mnist = BuildMnistTensor(pixels, width, height, bounds, _mainScratch);
 
                 results.Add(new DigitCandidate
@@ -224,6 +211,12 @@ public class DigitSegmenter : MonoBehaviour
                     bounds = bounds,
                     mnistPixels = mnist
                 });
+
+                if (results.Count >= maxCandidates)
+                {
+                    results.Sort((a, b) => a.bounds.x.CompareTo(b.bounds.x));
+                    yield break;
+                }
 
                 if (++work >= workBudgetPerYield)
                 {
@@ -250,14 +243,20 @@ public class DigitSegmenter : MonoBehaviour
         scratch.EnsureCanvasBuffers(outputSize);
 
         bool[] foreground = scratch.foreground;
+        bool[] tempBinary = scratch.tempBinary;
         bool[] visited = scratch.visited;
         int[] queue = scratch.queue;
 
         for (int i = 0; i < pixelCount; i++)
         {
-            float v = GetSourceValue(pixels[i]);
-            foreground[i] = v >= whiteThreshold;
+            foreground[i] = GetSourceValue(pixels[i]) >= whiteThreshold;
             visited[i] = false;
+        }
+
+        if (ShouldUseBinaryClose())
+        {
+            BinaryDilate4(foreground, tempBinary, width, height);
+            BinaryErode4(tempBinary, foreground, width, height);
         }
 
         for (int y = 0; y < height; y++)
@@ -295,48 +294,16 @@ public class DigitSegmenter : MonoBehaviour
                     if (py < minY) minY = py;
                     if (py > maxY) maxY = py;
 
-                    int yMin = py - maxVerticalGap;
-                    int yMax = py + maxVerticalGap;
-                    int xMin = px - maxHorizontalGap;
-                    int xMax = px + maxHorizontalGap;
-
-                    for (int ny = yMin; ny <= yMax; ny++)
-                    {
-                        if ((uint)ny >= (uint)height)
-                            continue;
-
-                        int nRow = ny * width;
-
-                        for (int nx = xMin; nx <= xMax; nx++)
-                        {
-                            if ((nx == px && ny == py) || (uint)nx >= (uint)width)
-                                continue;
-
-                            int nIdx = nRow + nx;
-                            if (visited[nIdx] || !foreground[nIdx])
-                                continue;
-
-                            visited[nIdx] = true;
-                            queue[tail++] = nIdx;
-                        }
-                    }
+                    TryEnqueue(px - 1, py, width, height, foreground, visited, queue, ref tail);
+                    TryEnqueue(px + 1, py, width, height, foreground, visited, queue, ref tail);
+                    TryEnqueue(px, py - 1, width, height, foreground, visited, queue, ref tail);
+                    TryEnqueue(px, py + 1, width, height, foreground, visited, queue, ref tail);
                 }
 
-                int blobWidth = maxX - minX + 1;
-                int blobHeight = maxY - minY + 1;
-                int area = blobWidth * blobHeight;
-
-                if (blobCount < minBlobPixels)
+                if (!PassesBlobFilter(blobCount, minX, maxX, minY, maxY))
                     continue;
 
-                if (blobWidth < minWidth || blobHeight < minHeight)
-                    continue;
-
-                float fillRatio = blobCount / (float)area;
-                if (fillRatio < minFillRatio)
-                    continue;
-
-                RectInt bounds = new RectInt(minX, minY, blobWidth, blobHeight);
+                RectInt bounds = new RectInt(minX, minY, maxX - minX + 1, maxY - minY + 1);
                 float[] mnist = BuildMnistTensor(pixels, width, height, bounds, scratch);
 
                 results.Add(new DigitCandidate
@@ -344,10 +311,110 @@ public class DigitSegmenter : MonoBehaviour
                     bounds = bounds,
                     mnistPixels = mnist
                 });
+
+                if (results.Count >= maxCandidates)
+                {
+                    results.Sort((a, b) => a.bounds.x.CompareTo(b.bounds.x));
+                    return;
+                }
             }
         }
 
         results.Sort((a, b) => a.bounds.x.CompareTo(b.bounds.x));
+    }
+
+    private bool PassesBlobFilter(int blobCount, int minX, int maxX, int minY, int maxY)
+    {
+        int blobWidth = maxX - minX + 1;
+        int blobHeight = maxY - minY + 1;
+        int area = blobWidth * blobHeight;
+
+        if (blobCount < minBlobPixels)
+            return false;
+
+        if (blobWidth < minWidth || blobHeight < minHeight)
+            return false;
+
+        float fillRatio = blobCount / (float)area;
+        if (fillRatio < minFillRatio)
+            return false;
+
+        return true;
+    }
+
+    private static void TryEnqueue(
+        int x,
+        int y,
+        int width,
+        int height,
+        bool[] foreground,
+        bool[] visited,
+        int[] queue,
+        ref int tail)
+    {
+        if ((uint)x >= (uint)width || (uint)y >= (uint)height)
+            return;
+
+        int idx = y * width + x;
+        if (visited[idx] || !foreground[idx])
+            return;
+
+        visited[idx] = true;
+        queue[tail++] = idx;
+    }
+
+    private bool ShouldUseBinaryClose()
+    {
+#if UNITY_WEBGL && !UNITY_EDITOR
+    return useBinaryClose;
+#else
+        return useBinaryClose && !useBinaryCloseOnWebGLOnly;
+#endif
+    }
+
+    private void BinaryDilate4(bool[] src, bool[] dst, int width, int height)
+    {
+        Array.Clear(dst, 0, width * height);
+
+        for (int y = 0; y < height; y++)
+        {
+            int row = y * width;
+
+            for (int x = 0; x < width; x++)
+            {
+                int idx = row + x;
+                if (src[idx])
+                {
+                    dst[idx] = true;
+                    if (x > 0) dst[idx - 1] = true;
+                    if (x + 1 < width) dst[idx + 1] = true;
+                    if (y > 0) dst[idx - width] = true;
+                    if (y + 1 < height) dst[idx + width] = true;
+                }
+            }
+        }
+    }
+
+    private void BinaryErode4(bool[] src, bool[] dst, int width, int height)
+    {
+        for (int y = 0; y < height; y++)
+        {
+            int row = y * width;
+
+            for (int x = 0; x < width; x++)
+            {
+                int idx = row + x;
+
+                bool keep =
+                    src[idx] &&
+                    (x > 0 && src[idx - 1]) &&
+                    (x + 1 < width && src[idx + 1]) &&
+                    (y > 0 && src[idx - width]) &&
+                    (y + 1 < height && src[idx + width]);
+
+                dst[idx] = keep;
+            }
+        }
     }
 
     private float[] BuildMnistTensor(
@@ -422,41 +489,31 @@ public class DigitSegmenter : MonoBehaviour
         if (applyDilation)
         {
             Dilate(current, temp);
-            var swap = current;
-            current = temp;
-            temp = swap;
+            (current, temp) = (temp, current);
         }
 
         if (rotate90Clockwise)
         {
             Rotate90CW(current, temp);
-            var swap = current;
-            current = temp;
-            temp = swap;
+            (current, temp) = (temp, current);
         }
 
         if (rotate90CounterClockwise)
         {
             Rotate90CCW(current, temp);
-            var swap = current;
-            current = temp;
-            temp = swap;
+            (current, temp) = (temp, current);
         }
 
         if (flipHorizontal)
         {
             FlipHorizontal(current, temp);
-            var swap = current;
-            current = temp;
-            temp = swap;
+            (current, temp) = (temp, current);
         }
 
         if (flipVertical)
         {
             FlipVertical(current, temp);
-            var swap = current;
-            current = temp;
-            temp = swap;
+            (current, temp) = (temp, current);
         }
 
         float[] output = new float[outputSize * outputSize];
